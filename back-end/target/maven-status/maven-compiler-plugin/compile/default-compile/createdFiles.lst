@@ -1,0 +1,11 @@
+com\socialmediaweb\socialmediaweb\repository\UserRepository.class
+com\socialmediaweb\socialmediaweb\repository\PostRepository.class
+com\socialmediaweb\socialmediaweb\controller\PostController.class
+com\socialmediaweb\socialmediaweb\service\PostService.class
+com\socialmediaweb\socialmediaweb\entities\Post.class
+com\socialmediaweb\socialmediaweb\controller\UserController.class
+com\socialmediaweb\socialmediaweb\entities\Role.class
+com\socialmediaweb\socialmediaweb\service\AuthenticationService.class
+com\socialmediaweb\socialmediaweb\entities\Users.class
+com\socialmediaweb\socialmediaweb\entities\UserRole.class
+com\socialmediaweb\socialmediaweb\SocialmediaWebApplication.class
