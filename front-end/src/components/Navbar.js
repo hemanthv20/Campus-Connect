@@ -18,21 +18,23 @@ function Navbar() {
 
   const handleSearch = async (event) => {
     event.preventDefault();
+    if (!searchTerm.trim()) return;
+    
     try {
+      // FIXED: Removed spaces in query parameter
       const response = await fetch(
-        `http://localhost:8081/users/search/${searchTerm}?gender = ${genderFilter}`
+        `http://localhost:8081/users/search/${searchTerm}?gender=${genderFilter}`
       );
       if (response.status === 200) {
         const data = await response.json();
         setSearchResult(true);
-        console.log(data);
+        // Navigate to user profile if found
+        navigate(`/profile/${data.username}`);
       } else if (response.status === 404) {
         setSearchResult(false);
-      } else {
-        console.log(`Response: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      console.error(`Fetch error: ${error}`);
+      setSearchResult(false);
     }
   };
 
@@ -40,27 +42,31 @@ function Navbar() {
   useEffect(() => {
     const fetchAutocompleteResults = async () => {
       try {
+        // FIXED: Removed spaces in query parameter
         const response = await fetch(
-          `http://localhost:8081/users/autocomplete/${searchTerm}?gender = ${genderFilter}`
+          `http://localhost:8081/users/autocomplete/${searchTerm}?gender=${genderFilter}`
         );
         if (response.ok) {
           const data = await response.json();
-          setAutocompleteResults(data); // Set the autocomplete results
-          console.log(data); // Log the results to console
-        } else {
-          console.log(`Response: ${response.status} ${response.statusText}`);
+          setAutocompleteResults(data);
         }
       } catch (error) {
-        console.error(`Fetch error: ${error}`);
+        // Silently fail for autocomplete
+        setAutocompleteResults([]);
       }
     };
 
-    if (searchTerm !== "") {
-      fetchAutocompleteResults();
+    if (searchTerm !== "" && searchTerm.length >= 2) {
+      // Only search if at least 2 characters
+      const debounceTimer = setTimeout(() => {
+        fetchAutocompleteResults();
+      }, 300); // Debounce for 300ms
+      
+      return () => clearTimeout(debounceTimer);
     } else {
-      setAutocompleteResults([]); // Clear the results when the search term is empty
+      setAutocompleteResults([]);
     }
-  }, [searchTerm, genderFilter]); // This function runs whenever the search term changes
+  }, [searchTerm, genderFilter]);
 
   return (
     <div>

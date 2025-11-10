@@ -1,187 +1,163 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import "./css/Profile.css";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import LoadingSpinner from './common/LoadingSpinner';
+import './css/Profile.css';
 
 function Profile() {
-  const [profile, setProfile] = useState({
-    username: "",
-    followers: Math.floor(Math.random() * 200),
-    following: Math.floor(Math.random() * 200),
-    // other profile data...
-  });
-  const [feed, setFeed] = useState([]);
-  const [user, setUser] = useState({});
-  const [editMode, setEditMode] = useState(false);
-  const [updatedProfile, setUpdatedProfile] = useState({});
   const { username } = useParams();
-
-  // Fetch user data based on the username
-  const fetchUserData = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8081/users/search/${username}`
-      );
-      setUser(response.data);
-      setUpdatedProfile(response.data); // Initialize updatedProfile with user data
-      loadFeed(response.data.user_id); // Pass the user_id to loadFeed
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // Retrieve Posts
-  const loadFeed = async (userId) => {
-    // Take userId as a parameter
-    try {
-      let response = await axios.get("http://localhost:8081/feed");
-      const sortedFeed = response.data.sort((a, b) => b.post_id - a.post_id);
-      const userPosts = sortedFeed.filter(
-        (post) => post.user.user_id === userId
-      ); // Use the passed userId
-      setFeed(userPosts);
-    } catch (error) {
-      console.error(error.response.data);
-    }
-  };
-
-  // Handle edit profile click
-  const handleEditProfile = () => {
-    setEditMode(true);
-  };
-
-  // Handle profile update change
-  const handleProfileUpdateChange = (e) => {
-    const { name, value } = e.target;
-    setUpdatedProfile((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  // Handle profile update submit
-  const handleProfileUpdateSubmit = () => {
-    axios
-      .put("http://localhost:8081/updateprofile", updatedProfile)
-      .then((response) => {
-        setUser(response.data); // Update user data
-        setEditMode(false); // Exit edit mode
-      })
-      .catch((error) => {
-        console.error("Error updating profile:", error);
-      });
-  };
+  const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('user'));
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  
+  const [profileUser, setProfileUser] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchUserData();
-  }, [username]);
+    if (!isLoggedIn) {
+      navigate('/');
+      return;
+    }
+    
+    loadProfile();
+  }, [username, isLoggedIn, navigate]);
+
+  const loadProfile = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Fetch user profile
+      const userResponse = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.SEARCH_USER}/${username}`);
+      setProfileUser(userResponse.data);
+      
+      // Fetch user posts
+      const postsResponse = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_USER_POSTS}/${userResponse.data.user_id}`);
+      const sortedPosts = postsResponse.data.sort((a, b) => b.post_id - a.post_id);
+      setUserPosts(sortedPosts);
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        setError('User not found');
+      } else {
+        setError('Failed to load profile. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`);
+      setUserPosts(userPosts.filter(post => post.post_id !== postId));
+    } catch (error) {
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
+  if (error) {
+    return (
+      <div className="profile-error">
+        <h2>{error}</h2>
+        <button onClick={() => navigate('/feed')}>Go to Feed</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="profile-container">
-      <div className="profile-left">
-        {/* Display profile information: */}
-        <div className="profile-card">
-          {user.profile_picture ? (
-            <img src={user.profile_picture} id="profile-dp" alt="Profile" />
-          ) : (
-            <img
-              src={require("../assets/placeholder.png")}
-              id="profile-dp"
-              alt="Profile Placeholder"
-            />
-          )}
-          {!editMode ? (
-            <>
-              <b>
-                {user.first_name} {user.last_name}
-              </b>
-              <p>@{user.username}</p>
-              <small>Joined {user.created_on}</small>
-              <div className="ff-section">
-                <div className="following-section">
-                  <b>{profile.followers}</b>
-                  <span> Following</span>
+    <div className="profile-page fade-in">
+      <div className="profile-header">
+        <div className="profile-cover"></div>
+        <div className="profile-info">
+          <div className="profile-picture-container">
+            {profileUser.profile_picture ? (
+              <img src={profileUser.profile_picture} alt={`${profileUser.username}'s profile`} className="profile-picture-large" />
+            ) : (
+              <img src={require('../assets/placeholder.png')} alt="Default profile" className="profile-picture-large" />
+            )}
+          </div>
+          <div className="profile-details">
+            <h1>{profileUser.first_name} {profileUser.last_name}</h1>
+            <p className="username">@{profileUser.username}</p>
+            {profileUser.admin && (
+              <span className="admin-badge">Admin</span>
+            )}
+            <div className="profile-meta">
+              {profileUser.college && (
+                <div className="meta-item">
+                  <i className="fi fi-rr-graduation-cap"></i>
+                  <span>{profileUser.college}</span>
                 </div>
-                <div className="followers-section">
-                  <b>{profile.following}</b>
-                  <span> Followers</span>
+              )}
+              {profileUser.semester && (
+                <div className="meta-item">
+                  <i className="fi fi-rr-book"></i>
+                  <span>{profileUser.semester}</span>
                 </div>
-              </div>
-              <button className="btn btn-primary" onClick={handleEditProfile}>
-                Edit Profile
-              </button>
-            </>
-          ) : (
-            <>
-              <input
-                className="form-control"
-                type="text"
-                name="first_name"
-                onChange={handleProfileUpdateChange}
-                value={updatedProfile.first_name}
-              />
-              <input
-                className="form-control"
-                type="text"
-                name="last_name"
-                onChange={handleProfileUpdateChange}
-                value={updatedProfile.last_name}
-              />
-              <input
-                className="form-control"
-                type="text"
-                name="email"
-                onChange={handleProfileUpdateChange}
-                value={updatedProfile.email}
-              />
-              <input
-                className="form-control"
-                type="file"
-                name="profile_picture"
-                onChange={handleProfileUpdateChange}
-              />
-              <select
-                className="form-control"
-                name="gender"
-                onChange={handleProfileUpdateChange}
-                value={updatedProfile.gender}
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <button
-                className="btn btn-outline-primary"
-                onClick={handleProfileUpdateSubmit}
-              >
-                Save Changes
-              </button>
-              <button
-                className="btn btn-outline-dark"
-                onClick={() => setEditMode(false)}
-              >
-                Cancel
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="feed">
-        {/* Display feed */}
-        {feed.map((post) => (
-          <div className="post-card" key={post.post_id}>
-            <h2 className="post-title">{post.title}</h2>
-            <div className="post-content">
-              <p>{post.content}</p>
-              {post.image && <img src={post.image} className="post-image" />}
-              {post.video && (
-                <video src={post.video} className="post-video" controls />
+              )}
+              {profileUser.batch && (
+                <div className="meta-item">
+                  <i className="fi fi-rr-calendar"></i>
+                  <span>{profileUser.batch}</span>
+                </div>
+              )}
+              {profileUser.email && (
+                <div className="meta-item">
+                  <i className="fi fi-rr-envelope"></i>
+                  <span>{profileUser.email}</span>
+                </div>
               )}
             </div>
-            <hr />
-            <p className="post-date">{post.created_on}</p>
           </div>
-        ))}
+        </div>
+      </div>
+
+      <div className="profile-content">
+        <div className="posts-section">
+          <h2>Posts ({userPosts.length})</h2>
+          {userPosts.length === 0 ? (
+            <div className="no-posts">
+              <p>No posts yet</p>
+            </div>
+          ) : (
+            <div className="posts-grid">
+              {userPosts.map((post) => (
+                <div className="post-card" key={post.post_id}>
+                  {post.image && (
+                    <img src={post.image} alt="Post" className="post-media" />
+                  )}
+                  {post.video && (
+                    <video src={post.video} controls className="post-media" />
+                  )}
+                  <div className="post-content">
+                    <p>{post.content}</p>
+                    <small>{new Date(post.created_on).toLocaleDateString()}</small>
+                  </div>
+                  {(currentUser.admin || currentUser.user_id === profileUser.user_id) && (
+                    <button 
+                      className="delete-post-btn" 
+                      onClick={() => handleDeletePost(post.post_id)}
+                      title="Delete post"
+                    >
+                      <i className="fi fi-rr-trash"></i>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

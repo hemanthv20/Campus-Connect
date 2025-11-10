@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { storage } from '../firebase';
-import { ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 } from 'uuid';
-import "./css/Feed.css";
+import './css/Feed.css';
+import LoadingSpinner from './common/LoadingSpinner';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 function Feed() {
   // Get logged in user information
@@ -15,29 +17,31 @@ function Feed() {
 
   // Loading Feed
   const [feed, setFeed] = useState([]);
+  const [loadingFeed, setLoadingFeed] = useState(true);
+  
   const loadFeed = async () => {
+    setLoadingFeed(true);
     try {
-      let response = await axios.get("http://localhost:8081/feed");
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FEED}`);
       const sortedFeed = response.data.sort((a, b) => b.post_id - a.post_id);
       setFeed(sortedFeed);
     } catch (error) {
-      console.error(error.response.data)
+      setFeed([]);
+    } finally {
+      setLoadingFeed(false);
     }
   }
 
   // Handling of Video and Image Upload
-  // const [imageUpload, setImageUpload] = useState(null);
-  // const [videoUpload, setVideoUpload] = useState(null);
-  // const [mediaPreview, setMediaPreview] = useState('');
   const [imageUpload, setImageUpload] = useState([]);
   const [videoUpload, setVideoUpload] = useState([]);
   const [mediaPreview, setMediaPreview] = useState([]);
-
 
   const handleImageUpload = (e) => {
     const files = e.target.files;
     const fileArray = Array.from(files);
     setImageUpload(fileArray);
+    setVideoUpload([]); // Clear video uploads
     previewFiles(fileArray);
   };
 
@@ -45,6 +49,7 @@ function Feed() {
     const files = e.target.files;
     const fileArray = Array.from(files);
     setVideoUpload(fileArray);
+    setImageUpload([]); // Clear image uploads
     previewFiles(fileArray);
   };
 
@@ -60,44 +65,6 @@ function Feed() {
     });
   };
 
-
-  const uploadImage = () => {
-    if (imageUpload == null) return;
-    const imageRef = ref(storage, `post-images/${imageUpload + v4()}`);
-    uploadBytes(imageRef, imageUpload)
-      .then(() => {
-        getDownloadURL(imageRef)
-          .then((url) => {
-            handlePostCreation(url);
-            setImageUpload(null);
-          })
-          .catch((error) => {
-            console.error("Error retrieving download URL: ", error)
-          })
-      })
-      .catch((error) => {
-        console.error("Error uploading media: ", error);
-      });
-  }
-
-  const uploadVideo = () => {
-    if (videoUpload == null) return;
-    const videoRef = ref(storage, `post-videos/${videoUpload + v4()}`);
-    uploadBytes(videoRef, videoUpload)
-      .then(() => {
-        getDownloadURL(videoRef)
-          .then((url) => {
-            handlePostCreation(url);
-            setVideoUpload(null);
-          })
-          .catch((error) => {
-            console.error("Error retrieving download URL: ", error)
-          })
-      })
-      .catch((error) => {
-        console.error("Error uploading media: ", error);
-      });
-  }
   const uploadImages = () => {
     if (imageUpload.length === 0) return;
 
@@ -105,15 +72,20 @@ function Feed() {
       const imageRef = ref(storage, `post-images/${file.name + v4()}`);
       return uploadBytes(imageRef, file)
         .then(() => getDownloadURL(imageRef))
-        .catch((error) => console.error("Error uploading media: ", error));
+        .catch((error) => {
+          throw new Error('Failed to upload image');
+        });
     });
 
     Promise.all(promises)
       .then((urls) => {
-        urls.forEach((url) => handlePostCreation(url));
+        urls.forEach((url) => handlePostCreation(url, 'image'));
         setImageUpload([]);
+        setMediaPreview([]);
       })
-      .catch((error) => console.error("Error retrieving download URLs: ", error));
+      .catch((error) => {
+        alert('Failed to upload images. Please try again.');
+      });
   };
 
   const uploadVideos = () => {
@@ -123,15 +95,20 @@ function Feed() {
       const videoRef = ref(storage, `post-videos/${file.name + v4()}`);
       return uploadBytes(videoRef, file)
         .then(() => getDownloadURL(videoRef))
-        .catch((error) => console.error("Error uploading media: ", error));
+        .catch((error) => {
+          throw new Error('Failed to upload video');
+        });
     });
 
     Promise.all(promises)
       .then((urls) => {
-        urls.forEach((url) => handlePostCreation(url));
+        urls.forEach((url) => handlePostCreation(url, 'video'));
         setVideoUpload([]);
+        setMediaPreview([]);
       })
-      .catch((error) => console.error("Error retrieving download URLs: ", error));
+      .catch((error) => {
+        alert('Failed to upload videos. Please try again.');
+      });
   };
 
   // Creation of Post
@@ -139,7 +116,6 @@ function Feed() {
     content: '',
     image: null,
     video: null,
-    created_on: new Date(),
     user: user
   })
 
@@ -154,27 +130,39 @@ function Feed() {
     } else if (videoUpload.length > 0) {
       uploadVideos();
     } else {
-      handlePostCreation(null);
+      handlePostCreation(null, null);
     }
-    setMediaPreview([]);
   };
 
-
-  const handlePostCreation = (mediaURL) => {
+  // FIXED: Simplified post creation
+  const handlePostCreation = (mediaURL, mediaType) => {
     let newPost = { ...post };
-    if (imageUpload && !videoUpload) {
-      newPost = { ...post, image: mediaURL };
-    } else if (!imageUpload && videoUpload) {
-      newPost = { ...post, video: mediaURL };
+    
+    if (mediaType === 'image') {
+      newPost = { ...post, image: mediaURL, video: null };
+    } else if (mediaType === 'video') {
+      newPost = { ...post, video: mediaURL, image: null };
     }
 
-    axios.post('http://localhost:8081/createpost', newPost)
+    axios.post(`${API_BASE_URL}${API_ENDPOINTS.CREATE_POST}`, newPost)
       .then((response) => {
         setPost({ ...post, content: '' });
+        setMediaPreview([]);
         loadFeed();
       })
       .catch((error) => {
-        console.error(error);
+        console.error('Post creation error:', error);
+        console.error('Error response:', error.response);
+        if (error.response) {
+          const errorMsg = typeof error.response.data === 'string' 
+            ? error.response.data 
+            : JSON.stringify(error.response.data);
+          alert(`Failed to create post: ${errorMsg}`);
+        } else if (error.request) {
+          alert('Cannot connect to server. Please check if backend is running.');
+        } else {
+          alert('Failed to create post. Please try again.');
+        }
       })
   }
 
@@ -184,18 +172,30 @@ function Feed() {
     content: '',
     image: '',
     video: '',
-    created_on: new Date(),
     user: user
   });
 
+  const [editingPostId, setEditingPostId] = useState(null);
+  
   const selectPostForEdit = (post) => {
+    setEditingPostId(post.post_id);
     setUpdatedPost({
       post_id: post.post_id,
       content: post.content,
       image: post.image,
       video: post.video,
-      created_on: post.created_on,
       user: post.user
+    });
+  };
+  
+  const cancelEdit = () => {
+    setEditingPostId(null);
+    setUpdatedPost({
+      post_id: '',
+      content: '',
+      image: '',
+      video: '',
+      user: user
     });
   };
 
@@ -204,27 +204,36 @@ function Feed() {
   };
 
   const handleUpdateSubmit = (e) => {
-    console.log(updatedPost)
     e.preventDefault();
-    axios.put("http://localhost:8081/updatepost", updatedPost)
+    axios.put(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_POST}`, updatedPost)
       .then((response) => {
-        setUpdatedPost(response.data);
+        setEditingPostId(null);
+        setUpdatedPost({
+          post_id: '',
+          content: '',
+          image: '',
+          video: '',
+          user: user
+        });
         loadFeed();
       })
       .catch((error) => {
-        console.error("Error updating post: ", error);
+        alert('Failed to update post. Please try again.');
       });
   };
 
   // Post Delete Function
   const handleDeletePostClick = (postId) => {
-    axios.delete(`http://localhost:8081/deletepost/${postId}`)
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+    
+    axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`)
       .then(response => {
-        console.log('Post deleted:', response.data);
-        loadFeed()
+        loadFeed();
       })
       .catch(error => {
-        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
       });
   }
 
@@ -235,61 +244,63 @@ function Feed() {
   };
 
   useEffect(() => {
-    loadFeed();
-    setUpdatedPost({
-      post_id: post.post_id,
-      content: post.content,
-      image: post.image,
-      video: post.video,
-      created_on: new Date(),
-      user: user
-    });
     if (!isLoggedIn) {
-      navigate("/")
+      navigate('/');
+      return;
     }
-  }, [post])
+    loadFeed();
+  }, [isLoggedIn, navigate]);
+
+  if (loadingFeed) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   return (
-    <div className='feed-container'>
+    <div className='feed-container fade-in'>
       {/* Create Post Container */}
       <div className='create-post-container'>
         <form onSubmit={handlePostSubmit} className='post-form'>
           <div className='create-dp'>
-            {
-              user.profile_picture ?
-                (<img src={user.profile_picture} id='post-profile-picture' />) :
-                (<img src={require('../assets/placeholder.png')} id='post-profile-picture' />)
-            }
+            {user.profile_picture ? (
+              <img src={user.profile_picture} id='post-profile-picture' alt={`${user.username}'s profile`} />
+            ) : (
+              <img src={require('../assets/placeholder.png')} id='post-profile-picture' alt="Default profile" />
+            )}
           </div>
           <div className='form-group'>
-            <textarea className='form-control' placeholder='Create a new post!' name='content' value={post.content} onChange={handlePostChange} rows={'4'} style={{ 'border': 'none' }} />
+            <textarea 
+              className='form-control' 
+              placeholder='Create a new post!' 
+              name='content' 
+              value={post.content} 
+              onChange={handlePostChange} 
+              rows={4} 
+              style={{ 'border': 'none' }} 
+            />
             <div className='media-preview'>
               {mediaPreview && mediaPreview.map((preview, index) => (
                 <div key={index}>
                   {typeof preview === 'string' && (
                     preview.startsWith("data:image") ? (
-                      <img src={preview} width={'300px'} className='img-preview' />
+                      <img src={preview} width={300} className='img-preview' alt={`Preview ${index + 1}`} />
                     ) : (
-                      <video src={preview} width={'300px'} className='img-preview' controls />
+                      <video src={preview} width={300} className='img-preview' controls />
                     )
                   )}
                 </div>
               ))}
-
-
             </div>
             <div className='create-post-buttons'>
               <div className='file-input-buttons'>
                 <div className='image-upload'>
-                  <label for="image-file-input"><i class="fi fi-rs-graphic-style"></i></label>
+                  <label htmlFor="image-file-input"><i className="fi fi-rs-graphic-style"></i></label>
                   <input type="file" id="image-file-input" accept="image/*" onChange={handleImageUpload} />
                 </div>
                 <div className="video-upload">
-                  <label for="video-file-input"><i class="fi fi-rs-play-alt"></i></label>
+                  <label htmlFor="video-file-input"><i className="fi fi-rs-play-alt"></i></label>
                   <input type="file" id="video-file-input" accept="video/*" onChange={handleVideoUpload} />
                 </div>
               </div>
-
               <button className='post-button' type='submit'>Create Post</button>
             </div>
           </div>
@@ -298,127 +309,106 @@ function Feed() {
 
       {/* View All Posts Container */}
       <div className='view-post-container'>
-        {/* For Each Post in Post, Display the Post and Details */}
-        {feed.length === 0 ?
-          (<p>No posts made yet! Begin by creating one now.</p>) :
-          (feed.map((post) => (
-            <div className='post-card' key={post.id}>
+        {feed.length === 0 ? (
+          <p>No posts made yet! Begin by creating one now.</p>
+        ) : (
+          feed.map((post) => (
+            <div className='post-card' key={post.post_id}>
               <div className='post-user'>
                 <div className='user-dp'>
-                  {
-                    post.user.profile_picture ?
-                      (<img src={post.user.profile_picture} id='post-profile-picture' />) :
-                      (<img src={require('../assets/placeholder.png')} id='post-profile-picture' />)
-                  }
+                  {post.user.profile_picture ? (
+                    <img src={post.user.profile_picture} id='post-profile-picture' alt={`${post.user.username}'s profile`} />
+                  ) : (
+                    <img src={require('../assets/placeholder.png')} id='post-profile-picture' alt="Default profile" />
+                  )}
                 </div>
                 <div className='user-content'>
                   <div className='user-details'>
                     <b>{post.user.first_name} {post.user.last_name}</b>
                     <Link to={`/profile/${post.user.username}`}>
-                      <span>@{post.user.username} | </span>
+                      <span>@{post.user.username}</span>
                     </Link>
-                    <b>{post.user.gender}</b>
+                    {/* ADDED: Display college information */}
+                    {(post.user.college || post.user.semester || post.user.batch) && (
+                      <div className='college-info'>
+                        {post.user.college && <span> | {post.user.college}</span>}
+                        {post.user.semester && <span> - {post.user.semester}</span>}
+                        {post.user.batch && <span> ({post.user.batch})</span>}
+                      </div>
+                    )}
                   </div>
                   <div className='post-content'>
-                    {
-                      post.image ?
-                        (<img src={post.image} width={'300px'} />) :
-                        (null)
-                    }
-                    {
-                      post.video ?
-                        (<video src={post.video} width={'300px'} controls />) :
-                        (null)
-                    }
+                    {post.image && (
+                      <img src={post.image} width={300} alt="Post image" />
+                    )}
+                    {post.video && (
+                      <video src={post.video} width={300} controls />
+                    )}
                     <p dangerouslySetInnerHTML={{ __html: detectLinks(post.content) }}></p>
-                    <small>Posted on {post.created_on}</small>
+                    <small>Posted on {new Date(post.created_on).toLocaleDateString()}</small>
                   </div>
                 </div>
               </div>
-              {
-                // Check if logged in user is an admin or the owner of the post displayed
-                user.admin || user.user_id === post.user.user_id ?
-                  (<div class="btn-group dropright">
-                    <button type="button" className='dropdown-btn' data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i className="fi fi-rr-menu-dots"></i>
-                    </button>
-                    <div className="dropdown-menu">
-                      {/* Delete Button */}
-                      <button className="dropdown-item" type="button" key={post.post_id} onClick={() => { handleDeletePostClick(post.post_id) }}>
-                        <i className="fi fi-rr-trash"></i>
-                        <span className='delete-dropdown'>Delete</span>
-                      </button>
-                      {/* Update Button */}
-                      <button className="dropdown-item" type="button" data-toggle="modal" data-target={`#exampleModal${post.post_id}`} onClick={() => selectPostForEdit(post)}>
-                        <i className="fi fi-rr-edit"></i>
-                        <span className='edit-dropdown'>Edit</span>
-                      </button>
-                    </div>
-                  </div>) :
-                  (null)
-              }
-              {/* Modal for Update */}
-              <div class="modal fade" id={`exampleModal${post.post_id}`} tabindex="-1" role="dialog" aria-labelledby={`exampleModalLabel${post.post_id}`} aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="exampleModalLabel">Editing Post</h5>
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <div class="modal-body">
-                      <b>Original Post:</b>
-                      <div className='post-user'>
-                        <div className='user-dp'>
-                          {
-                            post.user.profile_picture ?
-                              (<img src={post.user.profile_picture} id='post-profile-picture' />) :
-                              (<img src={require('../assets/placeholder.png')} id='post-profile-picture' />)
-                          }
-                        </div>
-                        <div className='user-content'>
-                          <div className='user-details'>
-                            <b>{post.user.first_name} {post.user.last_name}</b>
-                            <Link to={`/profile/${post.user.username}`}>
-                              <span>@{post.user.username}</span>
-                            </Link>
-                          </div>
-                          <div className='post-content'>
-                            {
-                              post.image ?
-                                (<img src={post.image} width={'300px'} />) :
-                                (null)
-                            }
-                            {
-                              post.video ?
-                                (<video src={post.video} width={'300px'} controls />) :
-                                (null)
-                            }
-                            <p dangerouslySetInnerHTML={{ __html: detectLinks(post.content) }}></p>
-                            <small>Posted on {post.created_on}</small>
-                          </div>
-                        </div>
-                      </div>
-                      <b>Editing Post:</b>
-                      <form className='update-form'>
-                        <input className='form-control' type='number' name='post_id' onChange={handleUpdateChange} value={updatedPost.post_id} hidden />
-                        <textarea className='form-control' type='text' name='content' onChange={handleUpdateChange} value={updatedPost.content} placeholder='Seems like there is no description. You may add a description to this post.' />
-                        <input className='form-control' type='text' name='image' onChange={handleUpdateChange} value={updatedPost.image} hidden />
-                        <input className='form-control' type='text' name='video' onChange={handleUpdateChange} value={updatedPost.video} hidden />
-                        <div className='update-form-buttons'>
-                          <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Close</button>
-                          <button type="button" class="btn btn-outline-primary" onClick={handleUpdateSubmit} data-dismiss="modal">Save Changes</button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
+              {/* Edit/Delete buttons for admin or post owner */}
+              {(user.admin || user.user_id === post.user.user_id) && editingPostId !== post.post_id && (
+                <div className="post-actions">
+                  <button 
+                    className="action-btn delete-btn" 
+                    onClick={() => handleDeletePostClick(post.post_id)}
+                    title="Delete post"
+                  >
+                    <i className="fi fi-rr-trash"></i>
+                  </button>
+                  <button 
+                    className="action-btn edit-btn" 
+                    onClick={() => selectPostForEdit(post)}
+                    title="Edit post"
+                  >
+                    <i className="fi fi-rr-edit"></i>
+                  </button>
                 </div>
-              </div>
+              )}
+              
+
             </div>
-          )))
-        }
+          ))
+        )}
       </div>
+
+      {/* Edit Modal */}
+      {editingPostId && (
+        <div className="modal-overlay" onClick={cancelEdit}>
+          <div className="modal-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-popup-header">
+              <h3>Edit Post</h3>
+              <button className="modal-close-btn" onClick={cancelEdit}>
+                <i className="fi fi-rr-cross"></i>
+              </button>
+            </div>
+            <form className="modal-popup-form" onSubmit={handleUpdateSubmit}>
+              <div className="modal-popup-body">
+                <textarea 
+                  className='form-control' 
+                  name='content' 
+                  onChange={handleUpdateChange} 
+                  value={updatedPost.content} 
+                  placeholder='Edit your post content...'
+                  rows={6}
+                  autoFocus
+                />
+              </div>
+              <div className="modal-popup-footer">
+                <button type="button" className="btn-cancel" onClick={cancelEdit}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
