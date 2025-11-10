@@ -79,7 +79,10 @@ function Register() {
       await handleUserCreation(url);
       setImageUpload(null);
     } catch (error) {
-      throw new Error('Failed to upload image. Please try again.');
+      // If image upload fails, still allow registration without image
+      console.error('Image upload failed:', error);
+      setFieldErrors({ ...fieldErrors, profile_picture: '' });
+      await handleUserCreation(null);
     }
   };
 

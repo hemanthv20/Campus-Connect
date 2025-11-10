@@ -33,7 +33,7 @@ public class Users {
     private String batch;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List posts;
+    private List<Post> posts;
 
     // Default constructor
     public Users() {

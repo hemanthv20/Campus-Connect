@@ -2,11 +2,13 @@ package com.socialmediaweb.socialmediaweb.entities;
 
 import java.sql.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 
 @Entity
@@ -14,9 +16,16 @@ public class Post {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int post_id;
+	
+	@Column(columnDefinition = "TEXT")
 	private String content;
+	
+	@Column(length = 1000)
 	private String image;
+	
+	@Column(length = 1000)
 	private String video;
+	
 	private Date created_on;
 	@ManyToOne
 	@JoinColumn(name = "user_id")
