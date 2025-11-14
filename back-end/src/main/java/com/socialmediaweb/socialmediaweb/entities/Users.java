@@ -3,6 +3,8 @@ package com.socialmediaweb.socialmediaweb.entities;
 import java.util.Date;
 import java.util.List;
 
+import com.socialmediaweb.socialmediaweb.entities.Follow;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,6 +36,12 @@ public class Users {
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
+    
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> following;
+    
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers;
 
     // Default constructor
     public Users() {

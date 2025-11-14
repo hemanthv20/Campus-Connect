@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 import LoadingSpinner from './common/LoadingSpinner';
+import FollowButton from './FollowButton';
+import FollowStats from './FollowStats';
+import FollowersList from './FollowersList';
+import FollowingList from './FollowingList';
 import './css/Profile.css';
 
 function Profile() {
@@ -15,6 +19,12 @@ function Profile() {
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [showFollowersList, setShowFollowersList] = useState(false);
+  const [showFollowingList, setShowFollowingList] = useState(false);
+  const [canChat, setCanChat] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -38,6 +48,9 @@ function Profile() {
       const postsResponse = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_USER_POSTS}/${userResponse.data.user_id}`);
       const sortedPosts = postsResponse.data.sort((a, b) => b.post_id - a.post_id);
       setUserPosts(sortedPosts);
+      
+      // Fetch follow status and counts
+      await loadFollowData(userResponse.data.user_id);
     } catch (error) {
       if (error.response && error.response.status === 404) {
         setError('User not found');
@@ -46,6 +59,61 @@ function Profile() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFollowData = async (userId) => {
+    try {
+      // Check if current user is following this profile
+      if (currentUser.user_id !== userId) {
+        const followCheckResponse = await axios.get(
+          `${API_BASE_URL}${API_ENDPOINTS.CHECK_FOLLOWING}`,
+          { params: { followerId: currentUser.user_id, followingId: userId } }
+        );
+        setIsFollowing(followCheckResponse.data.isFollowing);
+        
+        // Check if users can chat (mutual follow)
+        const canChatResponse = await axios.get(
+          `${API_BASE_URL}${API_ENDPOINTS.CAN_CHAT}`,
+          { params: { user1Id: currentUser.user_id, user2Id: userId } }
+        );
+        setCanChat(canChatResponse.data.canChat);
+      }
+      
+      // Get follower and following counts
+      const countsResponse = await axios.get(
+        `${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOW_COUNTS}/${userId}`
+      );
+      setFollowerCount(countsResponse.data.followers);
+      setFollowingCount(countsResponse.data.following);
+    } catch (error) {
+      console.error('Error loading follow data:', error);
+    }
+  };
+
+  const handleFollowChange = async (newFollowState, responseData) => {
+    setIsFollowing(newFollowState);
+    if (responseData) {
+      setFollowerCount(responseData.followerCount);
+    }
+    
+    // Update chat permission - can chat if current user follows the profile user
+    setCanChat(newFollowState);
+  };
+  
+  const handleMessageClick = async () => {
+    if (!canChat) {
+      alert('You must follow this user to message them!');
+      return;
+    }
+    
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}${API_ENDPOINTS.GET_OR_CREATE_CHAT}/${profileUser.user_id}?userId=${currentUser.user_id}`
+      );
+      navigate(`/chat/${response.data.id}`);
+    } catch (error) {
+      alert(error.response?.data || 'Unable to start chat. Please follow this user first!');
     }
   };
 
@@ -93,6 +161,35 @@ function Profile() {
             {profileUser.admin && (
               <span className="admin-badge">Admin</span>
             )}
+            
+            {currentUser.user_id !== profileUser.user_id && (
+              <div className="profile-actions">
+                <FollowButton
+                  targetUserId={profileUser.user_id}
+                  currentUserId={currentUser.user_id}
+                  initialIsFollowing={isFollowing}
+                  onFollowChange={handleFollowChange}
+                />
+                <button
+                  className={`message-button ${!canChat ? 'disabled' : ''}`}
+                  onClick={handleMessageClick}
+                  disabled={!canChat}
+                  title={canChat ? 'Send message' : 'Follow this user to send messages'}
+                >
+                  <i className="fi fi-rr-comment-alt"></i>
+                  Message
+                </button>
+              </div>
+            )}
+            
+            <FollowStats
+              userId={profileUser.user_id}
+              followerCount={followerCount}
+              followingCount={followingCount}
+              onFollowersClick={() => setShowFollowersList(true)}
+              onFollowingClick={() => setShowFollowingList(true)}
+            />
+            
             <div className="profile-meta">
               {profileUser.college && (
                 <div className="meta-item">
@@ -159,6 +256,20 @@ function Profile() {
           )}
         </div>
       </div>
+      
+      <FollowersList
+        userId={profileUser?.user_id}
+        currentUserId={currentUser.user_id}
+        isOpen={showFollowersList}
+        onClose={() => setShowFollowersList(false)}
+      />
+      
+      <FollowingList
+        userId={profileUser?.user_id}
+        currentUserId={currentUser.user_id}
+        isOpen={showFollowingList}
+        onClose={() => setShowFollowingList(false)}
+      />
     </div>
   );
 }

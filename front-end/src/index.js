@@ -11,6 +11,8 @@ import Feed from './components/Feed';
 import Admin from './components/Admin.js';
 import Navbar from './components/Navbar.js';
 import Profile from './components/Profile.js';
+import ChatList from './components/ChatList.js';
+import ChatWindow from './components/ChatWindow.js';
 
 function App() {
     return (
@@ -24,6 +26,8 @@ function App() {
                 <Route path='/feed' element={<Feed />} />
                 <Route path='/admin' element={<Admin />} />
                 <Route path='/profile/:username' element={<Profile />} />
+                <Route path='/chat' element={<ChatList />} />
+                <Route path='/chat/:chatId' element={<ChatWindow />} />
             </Routes>
         </Router>
     )

@@ -163,6 +163,7 @@
     box-shadow: var(--shadow-md);
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     transition: all var(--transition-fast);
     animation: fadeIn 0.5s ease-in-out;
 }
@@ -175,10 +176,12 @@
     display: flex;
     gap: 1rem;
     flex: 1;
+    align-items: flex-start;
 }
 
 .user-dp {
     flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .user-content {
@@ -186,45 +189,82 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    align-items: flex-start;
+    text-align: left;
 }
 
 .user-details {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+}
+
+.user-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .user-details b {
     color: var(--text-primary);
     font-size: 1rem;
+    text-align: left;
+    align-self: flex-start;
 }
 
 .user-details span {
     color: var(--text-secondary);
     font-size: 0.875rem;
+    text-align: left;
+    align-self: flex-start;
 }
 
 .user-details a {
     text-decoration: none;
     transition: color var(--transition-fast);
+    align-self: flex-start;
+    display: block;
+    width: fit-content;
 }
 
 .user-details a:hover {
     color: var(--primary-color);
 }
 
+.user-details a span {
+    display: inline-block;
+    text-align: left;
+}
+
 .college-info {
     color: var(--text-tertiary);
     font-size: 0.8125rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
+    display: block;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    align-self: flex-start;
+}
+
+.college-info span {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    text-align: left;
 }
 
 .post-content {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
 }
 
 .post-content img,
@@ -233,12 +273,17 @@
     max-width: 500px;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
+    align-self: flex-start;
 }
 
 .post-content p {
     color: var(--text-primary);
     line-height: 1.6;
     word-wrap: break-word;
+    text-align: left;
+    align-self: flex-start;
+    width: 100%;
+    margin: 0;
 }
 
 .post-content p a {
@@ -249,6 +294,8 @@
 .post-content small {
     color: var(--text-tertiary);
     font-size: 0.8125rem;
+    text-align: left;
+    align-self: flex-start;
 }
 
 .post-actions {
@@ -706,4 +753,18 @@
         width: 100%;
         justify-content: center;
     }
+}
+
+/* Following Badge */
+.following-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    white-space: nowrap;
 }

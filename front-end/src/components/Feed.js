@@ -18,6 +18,7 @@ function Feed() {
   // Loading Feed
   const [feed, setFeed] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [followingUsers, setFollowingUsers] = useState(new Set());
   
   const loadFeed = async () => {
     setLoadingFeed(true);
@@ -25,10 +26,23 @@ function Feed() {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FEED}`);
       const sortedFeed = response.data.sort((a, b) => b.post_id - a.post_id);
       setFeed(sortedFeed);
+      
+      // Load following list to show indicators
+      loadFollowingList();
     } catch (error) {
       setFeed([]);
     } finally {
       setLoadingFeed(false);
+    }
+  }
+  
+  const loadFollowingList = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOWING}/${user.user_id}`);
+      const followingIds = new Set(response.data.map(u => u.userId));
+      setFollowingUsers(followingIds);
+    } catch (error) {
+      console.error('Error loading following list:', error);
     }
   }
 
@@ -324,14 +338,19 @@ function Feed() {
                 </div>
                 <div className='user-content'>
                   <div className='user-details'>
-                    <b>{post.user.first_name} {post.user.last_name}</b>
+                    <div className='user-name-row'>
+                      <b>{post.user.first_name} {post.user.last_name}</b>
+                      {followingUsers.has(post.user.user_id) && (
+                        <span className="following-badge">Following</span>
+                      )}
+                    </div>
                     <Link to={`/profile/${post.user.username}`}>
                       <span>@{post.user.username}</span>
                     </Link>
                     {/* ADDED: Display college information */}
                     {(post.user.college || post.user.semester || post.user.batch) && (
                       <div className='college-info'>
-                        {post.user.college && <span> | {post.user.college}</span>}
+                        {post.user.college && <span>{post.user.college}</span>}
                         {post.user.semester && <span> - {post.user.semester}</span>}
                         {post.user.batch && <span> ({post.user.batch})</span>}
                       </div>

@@ -268,3 +268,56 @@
     font-size: 0.875rem;
   }
 }
+
+/* Profile Actions (Follow and Message buttons) */
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.message-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.message-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.message-button.disabled,
+.message-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.message-button i {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .profile-actions {
+    width: 100%;
+  }
+  
+  .message-button {
+    flex: 1;
+    min-width: auto;
+  }
+}

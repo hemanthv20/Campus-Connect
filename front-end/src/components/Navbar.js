@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ChatIcon from "./ChatIcon";
 import "./css/Navbar.css";
 
 function Navbar() {
@@ -140,6 +141,7 @@ function Navbar() {
             <Link to="/" className="nav-link">
               <a>Home</a>
             </Link>
+            <ChatIcon />
             {user.admin ? (
               <Link to="/admin" className="nav-link">
                 <a>Admin</a>
