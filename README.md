@@ -239,6 +239,27 @@ CampusConnect/
 - Automatic link detection
 - Media upload via Firebase
 
+## 🚀 Deployment
+
+### Quick Deploy (15 minutes)
+
+See **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** for fastest deployment.
+
+### Detailed Deployment Guide
+
+See **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** for comprehensive instructions.
+
+### Recommended Free Hosting:
+
+- **Database**: Railway or Supabase (500MB free)
+- **Backend**: Railway or Render (500-750 hours/month free)
+- **Frontend**: Vercel or Netlify (unlimited free)
+
+### Live Demo
+
+- Frontend: `https://your-app.vercel.app`
+- Backend API: `https://your-app.railway.app`
+
 ## 🚦 Running in Production
 
 ### Backend
