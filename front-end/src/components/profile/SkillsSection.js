@@ -95,16 +95,18 @@ function SkillsSection({ userId, isOwnProfile }) {
         ) : (
           skills.map((skill) => (
             <div key={skill.id} className="skill-card">
-              <div className="skill-info">
-                <span className="skill-name">{skill.skillName}</span>
-                <span 
-                  className="skill-level" 
-                  style={{ background: getProficiencyColor(skill.proficiencyLevel) }}
-                >
-                  {skill.proficiencyLevel}
-                </span>
+              <div className="skill-card-content">
+                <div className="skill-info">
+                  <span className="skill-name">{skill.skillName}</span>
+                  <span 
+                    className="skill-level" 
+                    style={{ background: getProficiencyColor(skill.proficiencyLevel) }}
+                  >
+                    {skill.proficiencyLevel}
+                  </span>
+                </div>
+                <span className="skill-category">{skill.categoryName}</span>
               </div>
-              <span className="skill-category">{skill.categoryName}</span>
               {isOwnProfile && (
                 <button 
                   className="delete-btn-small" 
