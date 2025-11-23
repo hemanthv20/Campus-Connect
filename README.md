@@ -13,6 +13,7 @@ A comprehensive full-stack social media platform built for campus communities, f
 - ✅ **Layout Improvements** - Flexbox-based skill cards with proper button positioning
 - ✅ **Accessibility Enhanced** - WCAG AAA compliant contrast ratios (7:1+)
 - ✅ **Mobile Optimized** - Responsive design with touch-friendly controls
+- ✅ **Search UX Improved** - Dropdown auto-closes on selection, ESC key support, click-outside detection
 
 **Status**: Production-ready! See [QUICK_START.md](QUICK_START.md) for deployment
 

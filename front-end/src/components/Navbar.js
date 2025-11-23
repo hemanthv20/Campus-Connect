@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ChatIcon from "./ChatIcon";
 import { API_BASE_URL } from "../config/api";
@@ -8,9 +8,11 @@ function Navbar() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResult, setSearchResult] = useState(null); // New state variable
-  const [autocompleteResults, setAutocompleteResults] = useState([]); // New state variable
-  const [genderFilter, setGenderFilter] = useState(""); // New state variable for gender filter
+  const [searchResult, setSearchResult] = useState(null);
+  const [autocompleteResults, setAutocompleteResults] = useState([]);
+  const [genderFilter, setGenderFilter] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchContainerRef = useRef(null);
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
@@ -23,13 +25,16 @@ function Navbar() {
     if (!searchTerm.trim()) return;
     
     try {
-      // FIXED: Removed spaces in query parameter
       const response = await fetch(
         `${API_BASE_URL}/users/search/${searchTerm}?gender=${genderFilter}`
       );
       if (response.status === 200) {
         const data = await response.json();
         setSearchResult(true);
+        // Close dropdown and clear search
+        setShowDropdown(false);
+        setSearchTerm("");
+        setAutocompleteResults([]);
         // Navigate to user profile if found
         navigate(`/profile/${data.username}`);
       } else if (response.status === 404) {
@@ -40,35 +45,76 @@ function Navbar() {
     }
   };
 
+  // Handle clicking on a suggestion
+  const handleSuggestionClick = (username) => {
+    // Close dropdown and clear search
+    setShowDropdown(false);
+    setSearchTerm("");
+    setAutocompleteResults([]);
+    setSearchResult(null);
+    // Navigate to profile
+    navigate(`/profile/${username}`);
+  };
+
   // Function to fetch autocomplete results when the search term changes
   useEffect(() => {
     const fetchAutocompleteResults = async () => {
       try {
-        // FIXED: Removed spaces in query parameter
         const response = await fetch(
           `${API_BASE_URL}/users/autocomplete/${searchTerm}?gender=${genderFilter}`
         );
         if (response.ok) {
           const data = await response.json();
           setAutocompleteResults(data);
+          setShowDropdown(data.length > 0);
         }
       } catch (error) {
-        // Silently fail for autocomplete
         setAutocompleteResults([]);
+        setShowDropdown(false);
       }
     };
 
     if (searchTerm !== "" && searchTerm.length >= 2) {
-      // Only search if at least 2 characters
       const debounceTimer = setTimeout(() => {
         fetchAutocompleteResults();
-      }, 300); // Debounce for 300ms
+      }, 300);
       
       return () => clearTimeout(debounceTimer);
     } else {
       setAutocompleteResults([]);
+      setShowDropdown(false);
     }
   }, [searchTerm, genderFilter]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Handle ESC key to close dropdown
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === "Escape") {
+        setShowDropdown(false);
+        setSearchTerm("");
+        setAutocompleteResults([]);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscKey);
+    return () => {
+      document.removeEventListener("keydown", handleEscKey);
+    };
+  }, []);
 
   return (
     <div>
@@ -76,11 +122,11 @@ function Navbar() {
         <nav className="navbar">
           <a className="navbar-brand">
             <Link to="/">
-              <img src={require("../assets/Campus.png")} height={"35px"} />
+              <img src={require("../assets/Campus.png")} height={"35px"} alt="Campus Connect" />
             </Link>
           </a>
           <div className="nav">
-            <div className="search-container">
+            <div className="search-container" ref={searchContainerRef}>
               <form className="form-inline" onSubmit={handleSearch}>
                 <input
                   className="form-control mr-sm-2"
@@ -97,7 +143,6 @@ function Navbar() {
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
-                         
                 </select>
                 <button
                   className="btn btn-outline-success my-2 my-sm-0"
@@ -106,13 +151,15 @@ function Navbar() {
                   Search
                 </button>
               </form>
-              {searchTerm && (
+              {showDropdown && autocompleteResults.length > 0 && (
                 <div className="autocomplete-results">
-                  {autocompleteResults.map((user) => (
-                    <div>
-                      <Link className="autocomplete" to={`/profile/${user}`}>
-                        {user}
-                      </Link>
+                  {autocompleteResults.map((username, index) => (
+                    <div
+                      key={index}
+                      className="autocomplete-item"
+                      onClick={() => handleSuggestionClick(username)}
+                    >
+                      {username}
                     </div>
                   ))}
                 </div>
@@ -129,11 +176,13 @@ function Navbar() {
                 <img
                   src={user.profile_picture}
                   className="nav-profile-picture"
+                  alt="Profile"
                 />
               ) : (
                 <img
                   src={require("../assets/placeholder.png")}
                   className="nav-profile-picture"
+                  alt="Profile"
                 />
               )}
 
@@ -160,7 +209,7 @@ function Navbar() {
         <nav className="navbar">
           <Link to="/">
             <a className="navbar-brand">
-              <img src={require("../assets/Campus.png")} height={"35px"} />
+              <img src={require("../assets/Campus.png")} height={"35px"} alt="Campus Connect" />
             </a>
           </Link>
           <div className="nav">

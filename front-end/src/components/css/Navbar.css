@@ -129,6 +129,31 @@
   padding-left: 1.25rem;
 }
 
+.autocomplete-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 500;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background: var(--bg-secondary);
+  color: var(--primary-color);
+  padding-left: 1.25rem;
+}
+
+.autocomplete-item:active {
+  background: var(--primary-color);
+  color: white;
+}
+
 .profile-picture-set {
   display: flex;
   align-items: center;
