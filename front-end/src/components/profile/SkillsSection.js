@@ -68,12 +68,12 @@ function SkillsSection({ userId, isOwnProfile }) {
 
   const getProficiencyColor = (level) => {
     const colors = {
-      BEGINNER: '#3498db',
-      INTERMEDIATE: '#2ecc71',
-      ADVANCED: '#f39c12',
-      EXPERT: '#e74c3c'
+      BEGINNER: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      INTERMEDIATE: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+      ADVANCED: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+      EXPERT: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'
     };
-    return colors[level] || '#95a5a6';
+    return colors[level] || 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
   };
 
   if (loading) return <div className="section-loading">Loading skills...</div>;
@@ -99,7 +99,7 @@ function SkillsSection({ userId, isOwnProfile }) {
                 <span className="skill-name">{skill.skillName}</span>
                 <span 
                   className="skill-level" 
-                  style={{ backgroundColor: getProficiencyColor(skill.proficiencyLevel) }}
+                  style={{ background: getProficiencyColor(skill.proficiencyLevel) }}
                 >
                   {skill.proficiencyLevel}
                 </span>
@@ -109,8 +109,9 @@ function SkillsSection({ userId, isOwnProfile }) {
                 <button 
                   className="delete-btn-small" 
                   onClick={() => handleDeleteSkill(skill.id)}
+                  title="Remove skill"
                 >
-                  <i className="fi fi-rr-cross-small"></i>
+                  ×
                 </button>
               )}
             </div>

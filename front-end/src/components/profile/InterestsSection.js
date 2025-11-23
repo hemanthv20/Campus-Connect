@@ -88,8 +88,9 @@ function InterestsSection({ userId, isOwnProfile }) {
                 <button 
                   className="delete-btn-small" 
                   onClick={() => handleDeleteInterest(interest.id)}
+                  title="Remove interest"
                 >
-                  <i className="fi fi-rr-cross-small"></i>
+                  ×
                 </button>
               )}
             </div>
