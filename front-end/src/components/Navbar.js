@@ -2,12 +2,21 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ChatIcon from "./ChatIcon";
 import { API_BASE_URL } from "../config/api";
+import { useAdmin } from "../context/AdminContext";
 import "./css/Navbar.css";
 
 function Navbar() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const { isAdmin, setCurrentUserId } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Set current user ID for admin context
+  useEffect(() => {
+    if (user && user.user_id) {
+      setCurrentUserId(user.user_id);
+    }
+  }, [user, setCurrentUserId]);
   const [searchResult, setSearchResult] = useState(null);
   const [autocompleteResults, setAutocompleteResults] = useState([]);
   const [genderFilter, setGenderFilter] = useState("");
@@ -195,11 +204,14 @@ function Navbar() {
               <a><i className="fi fi-rr-search"></i> Discover</a>
             </Link>
             <ChatIcon />
-            {user.admin ? (
-              <Link to="/admin" className="nav-link">
-                <a>Admin</a>
+            {isAdmin && (
+              <Link to="/admin-dashboard" className="nav-link admin-nav-link">
+                <a>
+                  <i className="fi fi-rr-shield"></i>
+                  Admin Dashboard
+                </a>
               </Link>
-            ) : null}
+            )}
             <Link to="/" className="nav-link">
               <a onClick={handleLogout}>Logout</a>
             </Link>

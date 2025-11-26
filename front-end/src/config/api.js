@@ -11,6 +11,19 @@ export const API_ENDPOINTS = {
   UPDATE_USER: '/updateuser',
   DELETE_USER: '/deleteuser',
   
+  // Authentication endpoints
+  REGISTER: '/api/auth/register',
+  CHECK_USERNAME: '/api/auth/check-username',
+  VALIDATE_REGISTRATION: '/api/auth/validate',
+  
+  // Admin endpoints
+  ADMIN_GET_USERS: '/api/admin/users',
+  ADMIN_DELETE_USER: '/api/admin/users',
+  ADMIN_DELETE_POST: '/api/admin/posts',
+  ADMIN_GET_STATS: '/api/admin/stats',
+  ADMIN_CHECK_STATUS: '/api/admin/check',
+  ADMIN_GET_POSTS: '/api/admin/posts',
+  
   // Post endpoints
   CREATE_POST: '/createpost',
   GET_FEED: '/feed',

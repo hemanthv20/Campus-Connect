@@ -7,6 +7,7 @@ import { v4 } from 'uuid';
 import './css/Feed.css';
 import LoadingSpinner from './common/LoadingSpinner';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { useAdmin } from '../context/AdminContext';
 
 function Feed() {
   // Get logged in user information
@@ -14,6 +15,9 @@ function Feed() {
   // Check the state of isLoggedIn
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   const navigate = useNavigate();
+  
+  // Admin context
+  const { isAdmin, deletePost: adminDeletePost, setCurrentUserId } = useAdmin();
 
   // Loading Feed
   const [feed, setFeed] = useState([]);
@@ -237,18 +241,29 @@ function Feed() {
   };
 
   // Post Delete Function
-  const handleDeletePostClick = (postId) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) {
+  const handleDeletePostClick = async (postId, isAdminDelete = false) => {
+    const confirmMessage = isAdminDelete 
+      ? 'Are you sure you want to delete this post as an admin? This action cannot be undone.'
+      : 'Are you sure you want to delete this post?';
+      
+    if (!window.confirm(confirmMessage)) {
       return;
     }
     
-    axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`)
-      .then(response => {
-        loadFeed();
-      })
-      .catch(error => {
-        alert('Failed to delete post. Please try again.');
-      });
+    try {
+      if (isAdminDelete && isAdmin) {
+        // Use admin delete endpoint
+        await adminDeletePost(postId);
+        alert('Post deleted successfully by admin');
+      } else {
+        // Use regular delete endpoint
+        await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`);
+      }
+      loadFeed();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error.message || 'Failed to delete post. Please try again.');
+    }
   }
 
   // Detect URL Links in Content
@@ -262,8 +277,14 @@ function Feed() {
       navigate('/');
       return;
     }
+    
+    // Set current user ID for admin context
+    if (user && user.user_id) {
+      setCurrentUserId(user.user_id);
+    }
+    
     loadFeed();
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, navigate, user, setCurrentUserId]);
 
   if (loadingFeed) {
     return <LoadingSpinner fullScreen />;
@@ -369,22 +390,39 @@ function Feed() {
                 </div>
               </div>
               {/* Edit/Delete buttons for admin or post owner */}
-              {(user.admin || user.user_id === post.user.user_id) && editingPostId !== post.post_id && (
+              {editingPostId !== post.post_id && (
                 <div className="post-actions">
-                  <button 
-                    className="action-btn delete-btn" 
-                    onClick={() => handleDeletePostClick(post.post_id)}
-                    title="Delete post"
-                  >
-                    <i className="fi fi-rr-trash"></i>
-                  </button>
-                  <button 
-                    className="action-btn edit-btn" 
-                    onClick={() => selectPostForEdit(post)}
-                    title="Edit post"
-                  >
-                    <i className="fi fi-rr-edit"></i>
-                  </button>
+                  {/* Admin can delete any post */}
+                  {isAdmin && (
+                    <button 
+                      className="action-btn admin-delete-btn" 
+                      onClick={() => handleDeletePostClick(post.post_id, true)}
+                      title="Delete post (Admin)"
+                    >
+                      <i className="fi fi-rr-shield"></i>
+                      <i className="fi fi-rr-trash"></i>
+                    </button>
+                  )}
+                  
+                  {/* Post owner can edit and delete their own posts */}
+                  {user.user_id === post.user.user_id && (
+                    <>
+                      <button 
+                        className="action-btn delete-btn" 
+                        onClick={() => handleDeletePostClick(post.post_id, false)}
+                        title="Delete post"
+                      >
+                        <i className="fi fi-rr-trash"></i>
+                      </button>
+                      <button 
+                        className="action-btn edit-btn" 
+                        onClick={() => selectPostForEdit(post)}
+                        title="Edit post"
+                      >
+                        <i className="fi fi-rr-edit"></i>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
               
