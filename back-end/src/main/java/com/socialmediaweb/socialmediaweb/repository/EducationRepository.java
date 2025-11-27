@@ -11,9 +11,9 @@ import java.util.List;
 @Repository
 public interface EducationRepository extends JpaRepository<Education, Long> {
     
-    @Query("SELECT e FROM Education e WHERE e.user.user_id = :userId")
+    @Query("SELECT e FROM Education e WHERE e.user.userId = :userId")
     List<Education> findByUserUserId(@Param("userId") int userId);
     
-    @Query("SELECT e FROM Education e WHERE e.user.user_id = :userId ORDER BY e.displayOrder ASC, e.startDate DESC")
+    @Query("SELECT e FROM Education e WHERE e.user.userId = :userId ORDER BY e.displayOrder ASC, e.startDate DESC")
     List<Education> findByUserIdOrderByDisplayOrder(@Param("userId") int userId);
 }

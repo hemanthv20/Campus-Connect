@@ -74,11 +74,20 @@ public class ChatController {
     
     // Get or create chat with specific user
     @GetMapping("/with/{otherUserId}")
-    public ResponseEntity<?> getOrCreateChat(@RequestParam int userId, @PathVariable int otherUserId) {
+    public ResponseEntity<?> getOrCreateChat(@RequestParam String userId, @PathVariable String otherUserId) {
         try {
-            Chat chat = chatService.getOrCreateChat(userId, otherUserId);
+            // Validate and parse user IDs
+            int userIdInt, otherUserIdInt;
+            try {
+                userIdInt = Integer.parseInt(userId);
+                otherUserIdInt = Integer.parseInt(otherUserId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user ID format");
+            }
             
-            Users currentUser = userRepository.findById(userId)
+            Chat chat = chatService.getOrCreateChat(userIdInt, otherUserIdInt);
+            
+            Users currentUser = userRepository.findById(userIdInt)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
             
             // Get latest message
@@ -86,7 +95,7 @@ public class ChatController {
             String lastMessageContent = latestMessage.map(Message::getContent).orElse(null);
             
             // Get unread count
-            long unreadCount = chatService.getChatUnreadCount(chat.getId(), userId);
+            long unreadCount = chatService.getChatUnreadCount(chat.getId(), userIdInt);
             
             ChatDTO chatDTO = ChatMapper.toChatDTO(chat, currentUser, lastMessageContent, unreadCount);
             return ResponseEntity.ok(chatDTO);

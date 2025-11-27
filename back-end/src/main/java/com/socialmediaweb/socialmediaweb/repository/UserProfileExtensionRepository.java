@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserProfileExtensionRepository extends JpaRepository<UserProfileExtension, Long> {
-    @Query("SELECT upe FROM UserProfileExtension upe WHERE upe.user.user_id = :userId")
+    @Query("SELECT upe FROM UserProfileExtension upe WHERE upe.user.userId = :userId")
     Optional<UserProfileExtension> findByUserUserId(@Param("userId") int userId);
 }

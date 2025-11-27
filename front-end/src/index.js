@@ -8,6 +8,8 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Users from './components/Users'
 import Feed from './components/Feed';
+import DebugFeed from './components/DebugFeed';
+import SimpleFeed from './components/SimpleFeed';
 import Admin from './components/Admin.js';
 import Navbar from './components/Navbar.js';
 import Profile from './components/Profile.js';
@@ -26,7 +28,7 @@ function App() {
                 <Route path='/register' element={<Register />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/users' element={<Users />} />
-                <Route path='/feed' element={<Feed />} />
+                <Route path='/feed' element={<SimpleFeed />} />
                 <Route path='/admin' element={<Admin />} />
 
                 <Route path='/profile/:username' element={<Profile />} />

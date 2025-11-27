@@ -113,9 +113,17 @@ public class FollowController {
     
     // Get followers list
     @GetMapping("/followers/{userId}")
-    public ResponseEntity<List<UserDTO>> getFollowers(@PathVariable int userId) {
+    public ResponseEntity<List<UserDTO>> getFollowers(@PathVariable String userId) {
         try {
-            List<Users> followers = followService.getFollowers(userId);
+            // Validate and parse userId
+            int userIdInt;
+            try {
+                userIdInt = Integer.parseInt(userId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            
+            List<Users> followers = followService.getFollowers(userIdInt);
             List<UserDTO> followerDTOs = new ArrayList<>();
             
             for (Users user : followers) {
@@ -131,15 +139,23 @@ public class FollowController {
     
     // Get following list
     @GetMapping("/following/{userId}")
-    public ResponseEntity<List<UserDTO>> getFollowing(@PathVariable int userId) {
+    public ResponseEntity<List<UserDTO>> getFollowing(@PathVariable String userId) {
         try {
-            List<Users> following = followService.getFollowing(userId);
+            // Validate and parse userId
+            int userIdInt;
+            try {
+                userIdInt = Integer.parseInt(userId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            
+            List<Users> following = followService.getFollowing(userIdInt);
             List<UserDTO> followingDTOs = new ArrayList<>();
             
             for (Users user : following) {
                 UserDTO dto = UserMapper.toDTO(user);
                 // Add follow-back status
-                dto.setFollower(followService.isFollowing(user.getUserId().intValue(), userId));
+                dto.setFollower(followService.isFollowing(user.getUserId().intValue(), userIdInt));
                 dto.setFollowing(true); // Current user follows this user
                 dto.setMutualFollow(dto.isFollower() && dto.isFollowing());
                 followingDTOs.add(dto);
@@ -153,12 +169,24 @@ public class FollowController {
     
     // Get follower and following counts
     @GetMapping("/counts/{userId}")
-    public ResponseEntity<FollowCountsDTO> getCounts(@PathVariable int userId) {
-        long followerCount = followService.getFollowerCount(userId);
-        long followingCount = followService.getFollowingCount(userId);
-        
-        FollowCountsDTO counts = new FollowCountsDTO(followerCount, followingCount);
-        return ResponseEntity.ok(counts);
+    public ResponseEntity<FollowCountsDTO> getCounts(@PathVariable String userId) {
+        try {
+            // Validate and parse userId
+            int userIdInt;
+            try {
+                userIdInt = Integer.parseInt(userId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            
+            long followerCount = followService.getFollowerCount(userIdInt);
+            long followingCount = followService.getFollowingCount(userIdInt);
+            
+            FollowCountsDTO counts = new FollowCountsDTO(followerCount, followingCount);
+            return ResponseEntity.ok(counts);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
     
     // Check mutual follow
@@ -174,9 +202,17 @@ public class FollowController {
     
     // Get mutual followers (users who follow you AND you follow back)
     @GetMapping("/mutual-followers/{userId}")
-    public ResponseEntity<List<UserDTO>> getMutualFollowers(@PathVariable int userId) {
+    public ResponseEntity<List<UserDTO>> getMutualFollowers(@PathVariable String userId) {
         try {
-            List<Users> mutualFollowers = followService.getMutualFollowers(userId);
+            // Validate and parse userId
+            int userIdInt;
+            try {
+                userIdInt = Integer.parseInt(userId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            
+            List<Users> mutualFollowers = followService.getMutualFollowers(userIdInt);
             List<UserDTO> mutualFollowerDTOs = new ArrayList<>();
             
             for (Users user : mutualFollowers) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { storage } from '../firebase';
@@ -100,62 +100,57 @@ function Feed() {
     previewFiles(fileArray);
   };
 
-  const previewFiles = (files) => {
+  const previewFiles = async (files) => {
     const previewArray = [];
-    files.forEach((file) => {
+    for (const file of files) {
       const reader = new FileReader();
-      reader.onload = () => {
-        previewArray.push(reader.result);
-        setMediaPreview([...previewArray]);
-      };
-      reader.readAsDataURL(file);
-    });
+      const result = await new Promise((resolve) => {
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+      previewArray.push(result);
+    }
+    setMediaPreview(previewArray);
   };
 
-  const uploadImages = () => {
+  const uploadImages = async () => {
     if (imageUpload.length === 0) return;
 
-    const promises = imageUpload.map((file) => {
-      const imageRef = ref(storage, `post-images/${file.name + v4()}`);
-      return uploadBytes(imageRef, file)
-        .then(() => getDownloadURL(imageRef))
-        .catch((error) => {
-          throw new Error('Failed to upload image');
-        });
-    });
-
-    Promise.all(promises)
-      .then((urls) => {
-        urls.forEach((url) => handlePostCreation(url, 'image'));
-        setImageUpload([]);
-        setMediaPreview([]);
-      })
-      .catch((error) => {
-        alert('Failed to upload images. Please try again.');
+    try {
+      const promises = imageUpload.map(async (file) => {
+        const imageRef = ref(storage, `post-images/${file.name + v4()}`);
+        await uploadBytes(imageRef, file);
+        return getDownloadURL(imageRef);
       });
+
+      const urls = await Promise.all(promises);
+      urls.forEach((url) => handlePostCreation(url, 'image'));
+      setImageUpload([]);
+      setMediaPreview([]);
+    } catch (error) {
+      console.error('Image upload error:', error);
+      alert('Failed to upload images. Please try again.');
+    }
   };
 
-  const uploadVideos = () => {
+  const uploadVideos = async () => {
     if (videoUpload.length === 0) return;
 
-    const promises = videoUpload.map((file) => {
-      const videoRef = ref(storage, `post-videos/${file.name + v4()}`);
-      return uploadBytes(videoRef, file)
-        .then(() => getDownloadURL(videoRef))
-        .catch((error) => {
-          throw new Error('Failed to upload video');
-        });
-    });
-
-    Promise.all(promises)
-      .then((urls) => {
-        urls.forEach((url) => handlePostCreation(url, 'video'));
-        setVideoUpload([]);
-        setMediaPreview([]);
-      })
-      .catch((error) => {
-        alert('Failed to upload videos. Please try again.');
+    try {
+      const promises = videoUpload.map(async (file) => {
+        const videoRef = ref(storage, `post-videos/${file.name + v4()}`);
+        await uploadBytes(videoRef, file);
+        return getDownloadURL(videoRef);
       });
+
+      const urls = await Promise.all(promises);
+      urls.forEach((url) => handlePostCreation(url, 'video'));
+      setVideoUpload([]);
+      setMediaPreview([]);
+    } catch (error) {
+      console.error('Video upload error:', error);
+      alert('Failed to upload videos. Please try again.');
+    }
   };
 
   const handlePostChange = (e) => {
@@ -183,7 +178,7 @@ function Feed() {
     }
 
     axios.post(`${API_BASE_URL}${API_ENDPOINTS.CREATE_POST}`, newPost)
-      .then((response) => {
+      .then(() => {
         setPost({ ...post, content: '' });
         setMediaPreview([]);
         loadFeed();
@@ -233,7 +228,7 @@ function Feed() {
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
     axios.put(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_POST}`, updatedPost)
-      .then((response) => {
+      .then(() => {
         setEditingPostId(null);
         setUpdatedPost({
           post_id: '',
@@ -245,6 +240,7 @@ function Feed() {
         loadFeed();
       })
       .catch((error) => {
+        console.error('Update post error:', error);
         alert('Failed to update post. Please try again.');
       });
   };

@@ -11,15 +11,15 @@ import java.util.List;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     
-    @Query("SELECT p FROM Project p WHERE p.user.user_id = :userId")
+    @Query("SELECT p FROM Project p WHERE p.user.userId = :userId")
     List<Project> findByUserUserId(@Param("userId") int userId);
     
-    @Query("SELECT p FROM Project p WHERE p.user.user_id = :userId ORDER BY p.displayOrder ASC, p.createdAt DESC")
+    @Query("SELECT p FROM Project p WHERE p.user.userId = :userId ORDER BY p.displayOrder ASC, p.createdAt DESC")
     List<Project> findByUserIdOrderByDisplayOrder(@Param("userId") int userId);
     
-    @Query("SELECT p FROM Project p WHERE p.user.user_id = :userId AND p.isFeatured = true")
+    @Query("SELECT p FROM Project p WHERE p.user.userId = :userId AND p.isFeatured = true")
     List<Project> findFeaturedProjectsByUserId(@Param("userId") int userId);
     
-    @Query("SELECT p FROM Project p WHERE p.user.user_id = :userId AND p.status = :status")
+    @Query("SELECT p FROM Project p WHERE p.user.userId = :userId AND p.status = :status")
     List<Project> findByUserUserIdAndStatus(@Param("userId") int userId, @Param("status") String status);
 }

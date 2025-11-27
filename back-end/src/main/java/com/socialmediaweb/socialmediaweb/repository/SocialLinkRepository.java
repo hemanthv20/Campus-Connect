@@ -11,9 +11,9 @@ import java.util.List;
 @Repository
 public interface SocialLinkRepository extends JpaRepository<SocialLink, Long> {
     
-    @Query("SELECT sl FROM SocialLink sl WHERE sl.user.user_id = :userId")
+    @Query("SELECT sl FROM SocialLink sl WHERE sl.user.userId = :userId")
     List<SocialLink> findByUserUserId(@Param("userId") int userId);
     
-    @Query("SELECT sl FROM SocialLink sl WHERE sl.user.user_id = :userId ORDER BY sl.displayOrder ASC")
+    @Query("SELECT sl FROM SocialLink sl WHERE sl.user.userId = :userId ORDER BY sl.displayOrder ASC")
     List<SocialLink> findByUserIdOrderByDisplayOrder(@Param("userId") int userId);
 }

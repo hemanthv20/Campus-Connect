@@ -11,12 +11,12 @@ import java.util.List;
 @Repository
 public interface ExperienceRepository extends JpaRepository<Experience, Long> {
     
-    @Query("SELECT e FROM Experience e WHERE e.user.user_id = :userId")
+    @Query("SELECT e FROM Experience e WHERE e.user.userId = :userId")
     List<Experience> findByUserUserId(@Param("userId") int userId);
     
-    @Query("SELECT e FROM Experience e WHERE e.user.user_id = :userId ORDER BY e.displayOrder ASC, e.startDate DESC")
+    @Query("SELECT e FROM Experience e WHERE e.user.userId = :userId ORDER BY e.displayOrder ASC, e.startDate DESC")
     List<Experience> findByUserIdOrderByDisplayOrder(@Param("userId") int userId);
     
-    @Query("SELECT e FROM Experience e WHERE e.user.user_id = :userId AND e.experienceType = :experienceType")
+    @Query("SELECT e FROM Experience e WHERE e.user.userId = :userId AND e.experienceType = :experienceType")
     List<Experience> findByUserUserIdAndExperienceType(@Param("userId") int userId, @Param("experienceType") String experienceType);
 }

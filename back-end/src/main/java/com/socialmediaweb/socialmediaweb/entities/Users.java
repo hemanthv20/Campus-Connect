@@ -39,7 +39,8 @@ public class Users {
     @Column(name = "batch", length = 50)
     private String batch;
     
-
+    @Column(name = "is_admin", nullable = false)
+    private Boolean isAdmin = false;
     
     @Column(name = "created_on")
     private LocalDateTime createdAt;
@@ -55,7 +56,7 @@ public class Users {
         this.username = username;
         this.passwordHash = passwordHash;
         this.email = email;
-
+        this.isAdmin = false;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -141,7 +142,13 @@ public class Users {
         this.batch = batch;
     }
     
-
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+    
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
     
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -163,6 +170,9 @@ public class Users {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (isAdmin == null) {
+            isAdmin = false;
+        }
     }
     
     @PreUpdate
