@@ -13,6 +13,7 @@ C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Project.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Experience.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Post.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\controller\AuthController.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\SocialmediaWebApplication.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\UserRole.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Follow.java
@@ -23,6 +24,7 @@ C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\service\ChatService.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\SearchResponseDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\service\ProfileService.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\UserResponseDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\UserSkillRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Education.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Goal.java
@@ -41,10 +43,13 @@ C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\SearchResultDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\UserInterestDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Skill.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\config\SecurityConfig.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\UserRegistrationDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\controller\FollowController.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\PostRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Role.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\ChatMapper.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\UsernameCheckDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\InterestRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\EducationRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\SearchCriteriaDTO.java
@@ -60,6 +65,7 @@ C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\UserInterestRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\service\AuthenticationService.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\GoalMilestone.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\service\AuthService.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Chat.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\repository\MessageRepository.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\service\SearchService.java
@@ -74,4 +80,5 @@ C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\dto\GoalMilestoneDTO.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\SkillCategory.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\controller\UserController.java
+C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\config\DataSeeder.java
 C:\Users\91789\Documents\Major Project\CampusConnect\back-end\src\main\java\com\socialmediaweb\socialmediaweb\entities\Interest.java

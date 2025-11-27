@@ -7,6 +7,7 @@ com\socialmediaweb\socialmediaweb\entities\SkillEndorsement.class
 com\socialmediaweb\socialmediaweb\dto\GoalDTO.class
 com\socialmediaweb\socialmediaweb\repository\ChatRepository.class
 com\socialmediaweb\socialmediaweb\controller\PostController.class
+com\socialmediaweb\socialmediaweb\controller\AuthController.class
 com\socialmediaweb\socialmediaweb\entities\Post.class
 com\socialmediaweb\socialmediaweb\dto\GoalMilestoneDTO.class
 com\socialmediaweb\socialmediaweb\entities\UserProfileExtension.class
@@ -22,6 +23,7 @@ com\socialmediaweb\socialmediaweb\entities\Users.class
 com\socialmediaweb\socialmediaweb\controller\ChatController.class
 com\socialmediaweb\socialmediaweb\entities\InterestCategory.class
 com\socialmediaweb\socialmediaweb\dto\FollowCountsDTO.class
+com\socialmediaweb\socialmediaweb\dto\UserResponseDTO.class
 com\socialmediaweb\socialmediaweb\entities\UserSkill.class
 com\socialmediaweb\socialmediaweb\entities\Project.class
 com\socialmediaweb\socialmediaweb\repository\FollowRepository.class
@@ -38,17 +40,20 @@ com\socialmediaweb\socialmediaweb\dto\UserMapper.class
 com\socialmediaweb\socialmediaweb\controller\UserController.class
 com\socialmediaweb\socialmediaweb\dto\ExperienceDTO.class
 com\socialmediaweb\socialmediaweb\repository\EducationRepository.class
+com\socialmediaweb\socialmediaweb\config\DataSeeder.class
 com\socialmediaweb\socialmediaweb\repository\SkillRepository.class
 com\socialmediaweb\socialmediaweb\entities\SkillCategory.class
 com\socialmediaweb\socialmediaweb\SocialmediaWebApplication.class
 com\socialmediaweb\socialmediaweb\dto\EnhancedProfileDTO.class
 com\socialmediaweb\socialmediaweb\entities\Education.class
+com\socialmediaweb\socialmediaweb\dto\UsernameCheckDTO.class
 com\socialmediaweb\socialmediaweb\dto\UserSkillDTO.class
 com\socialmediaweb\socialmediaweb\repository\UserProfileExtensionRepository.class
 com\socialmediaweb\socialmediaweb\entities\SocialLink.class
 com\socialmediaweb\socialmediaweb\config\CorsConfig$1.class
 com\socialmediaweb\socialmediaweb\dto\MessageDTO.class
 com\socialmediaweb\socialmediaweb\entities\Message.class
+com\socialmediaweb\socialmediaweb\dto\UserRegistrationDTO.class
 com\socialmediaweb\socialmediaweb\entities\Follow.class
 com\socialmediaweb\socialmediaweb\repository\UserRepository.class
 com\socialmediaweb\socialmediaweb\repository\ProjectRepository.class
@@ -57,6 +62,7 @@ com\socialmediaweb\socialmediaweb\repository\InterestRepository.class
 com\socialmediaweb\socialmediaweb\dto\SearchResponseDTO.class
 com\socialmediaweb\socialmediaweb\repository\GoalRepository.class
 com\socialmediaweb\socialmediaweb\entities\Goal.class
+com\socialmediaweb\socialmediaweb\service\AuthService.class
 com\socialmediaweb\socialmediaweb\dto\SocialLinkDTO.class
 com\socialmediaweb\socialmediaweb\repository\UserSkillRepository.class
 com\socialmediaweb\socialmediaweb\entities\Chat.class
@@ -72,6 +78,7 @@ com\socialmediaweb\socialmediaweb\service\ChatService.class
 com\socialmediaweb\socialmediaweb\dto\SearchCriteriaDTO.class
 com\socialmediaweb\socialmediaweb\repository\GoalMilestoneRepository.class
 com\socialmediaweb\socialmediaweb\dto\UserDTO.class
+com\socialmediaweb\socialmediaweb\config\SecurityConfig.class
 com\socialmediaweb\socialmediaweb\repository\MessageRepository.class
 com\socialmediaweb\socialmediaweb\service\ProfileService.class
 com\socialmediaweb\socialmediaweb\controller\ProfileController.class
