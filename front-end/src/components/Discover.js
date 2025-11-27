@@ -35,7 +35,7 @@ function Discover() {
   const loadRecommendations = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/search/recommendations`, {
-        params: { userId: currentUser.user_id }
+        params: { userId: currentUser.userId }
       });
       setRecommendations(response.data);
     } catch (error) {
@@ -54,7 +54,7 @@ function Discover() {
     
     try {
       const response = await axios.get(`${API_BASE_URL}/api/search/quick`, {
-        params: { query, userId: currentUser.user_id }
+        params: { query, userId: currentUser.userId }
       });
       setQuickResults(response.data);
       setShowQuickResults(true);
@@ -80,7 +80,7 @@ function Discover() {
       };
       
       const response = await axios.post(
-        `${API_BASE_URL}/api/search/advanced?userId=${currentUser.user_id}`,
+        `${API_BASE_URL}/api/search/advanced?userId=${currentUser.userId}`,
         criteria
       );
       

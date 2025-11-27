@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { storage } from '../firebase';
@@ -7,23 +7,60 @@ import { v4 } from 'uuid';
 import './css/Feed.css';
 import LoadingSpinner from './common/LoadingSpinner';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { getCurrentUser, clearUserSession } from '../utils/userUtils';
 
 
 function Feed() {
   // Get logged in user information
-  const user = JSON.parse(localStorage.getItem('user'));
-  // Check the state of isLoggedIn
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   const navigate = useNavigate();
   
-
-
+  // Get normalized user object
+  const normalizedUser = getCurrentUser();
+  
+  // ALL HOOKS MUST BE DECLARED FIRST - BEFORE ANY CONDITIONAL LOGIC
   // Loading Feed
   const [feed, setFeed] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
-  
-  const loadFeed = async () => {
+
+  // Handling of Video and Image Upload
+  const [imageUpload, setImageUpload] = useState([]);
+  const [videoUpload, setVideoUpload] = useState([]);
+  const [mediaPreview, setMediaPreview] = useState([]);
+
+  // Creation of Post
+  const [post, setPost] = useState({
+    content: '',
+    image: null,
+    video: null,
+    user: normalizedUser
+  });
+
+  // Update Function
+  const [updatedPost, setUpdatedPost] = useState({
+    post_id: '',
+    content: '',
+    image: '',
+    video: '',
+    user: normalizedUser
+  });
+
+  const [editingPostId, setEditingPostId] = useState(null);
+
+  // Define functions with useCallback to avoid dependency issues
+  const loadFollowingList = useCallback(async () => {
+    if (!normalizedUser?.userId) return;
+    try {
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOWING}/${normalizedUser.userId}`);
+      const followingIds = new Set(response.data.map(u => u.userId));
+      setFollowingUsers(followingIds);
+    } catch (error) {
+      console.error('Error loading following list:', error);
+    }
+  }, [normalizedUser?.userId]);
+
+  const loadFeed = useCallback(async () => {
     setLoadingFeed(true);
     try {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FEED}`);
@@ -37,22 +74,29 @@ function Feed() {
     } finally {
       setLoadingFeed(false);
     }
+  }, [loadFollowingList]);
+
+  // useEffect hook - must be called after function definitions but before render
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/');
+      return;
+    }
+    
+    if (normalizedUser) {
+      loadFeed();
+    }
+  }, [isLoggedIn, navigate, normalizedUser, loadFeed]);
+  
+  // Add safety check for user object AFTER all hooks are declared
+  if (!normalizedUser) {
+    console.error('User object is invalid or missing');
+    clearUserSession();
+    navigate('/');
+    return null;
   }
   
-  const loadFollowingList = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOWING}/${user.user_id}`);
-      const followingIds = new Set(response.data.map(u => u.userId));
-      setFollowingUsers(followingIds);
-    } catch (error) {
-      console.error('Error loading following list:', error);
-    }
-  }
 
-  // Handling of Video and Image Upload
-  const [imageUpload, setImageUpload] = useState([]);
-  const [videoUpload, setVideoUpload] = useState([]);
-  const [mediaPreview, setMediaPreview] = useState([]);
 
   const handleImageUpload = (e) => {
     const files = e.target.files;
@@ -128,14 +172,6 @@ function Feed() {
       });
   };
 
-  // Creation of Post
-  const [post, setPost] = useState({
-    content: '',
-    image: null,
-    video: null,
-    user: user
-  })
-
   const handlePostChange = (e) => {
     setPost({ ...post, [e.target.name]: e.target.value });
   }
@@ -182,17 +218,6 @@ function Feed() {
         }
       })
   }
-
-  // Update Function
-  const [updatedPost, setUpdatedPost] = useState({
-    post_id: '',
-    content: '',
-    image: '',
-    video: '',
-    user: user
-  });
-
-  const [editingPostId, setEditingPostId] = useState(null);
   
   const selectPostForEdit = (post) => {
     setEditingPostId(post.post_id);
@@ -212,7 +237,7 @@ function Feed() {
       content: '',
       image: '',
       video: '',
-      user: user
+      user: normalizedUser
     });
   };
 
@@ -230,7 +255,7 @@ function Feed() {
           content: '',
           image: '',
           video: '',
-          user: user
+          user: normalizedUser
         });
         loadFeed();
       })
@@ -261,17 +286,6 @@ function Feed() {
     return content.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
   };
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/');
-      return;
-    }
-    
-
-    
-    loadFeed();
-  }, [isLoggedIn, navigate, user]);
-
   if (loadingFeed) {
     return <LoadingSpinner fullScreen />;
   }
@@ -282,8 +296,8 @@ function Feed() {
       <div className='create-post-container'>
         <form onSubmit={handlePostSubmit} className='post-form'>
           <div className='create-dp'>
-            {user.profile_picture ? (
-              <img src={user.profile_picture} id='post-profile-picture' alt={`${user.username}'s profile`} />
+            {normalizedUser.profile_picture ? (
+              <img src={normalizedUser.profile_picture} id='post-profile-picture' alt={`${normalizedUser.username}'s profile`} />
             ) : (
               <img src={require('../assets/placeholder.png')} id='post-profile-picture' alt="Default profile" />
             )}
@@ -347,7 +361,7 @@ function Feed() {
                   <div className='user-details'>
                     <div className='user-name-row'>
                       <b>{post.user.first_name} {post.user.last_name}</b>
-                      {followingUsers.has(post.user.user_id) && (
+                      {followingUsers.has(post.user.userId) && (
                         <span className="following-badge">Following</span>
                       )}
                     </div>
@@ -381,7 +395,7 @@ function Feed() {
 
                   
                   {/* Post owner can edit and delete their own posts */}
-                  {user.user_id === post.user.user_id && (
+                  {normalizedUser.userId === post.user.userId && (
                     <>
                       <button 
                         className="action-btn delete-btn" 

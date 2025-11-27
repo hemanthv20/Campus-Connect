@@ -55,12 +55,12 @@ function Profile() {
       setProfileUser(userResponse.data);
       
       // Fetch user posts
-      const postsResponse = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_USER_POSTS}/${userResponse.data.user_id}`);
+      const postsResponse = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_USER_POSTS}/${userResponse.data.userId}`);
       const sortedPosts = postsResponse.data.sort((a, b) => b.post_id - a.post_id);
       setUserPosts(sortedPosts);
       
       // Fetch follow status and counts
-      await loadFollowData(userResponse.data.user_id);
+      await loadFollowData(userResponse.data.userId);
     } catch (error) {
       if (error.response && error.response.status === 404) {
         setError('User not found');
@@ -75,17 +75,17 @@ function Profile() {
   const loadFollowData = async (userId) => {
     try {
       // Check if current user is following this profile
-      if (currentUser.user_id !== userId) {
+      if (currentUser.userId !== userId) {
         const followCheckResponse = await axios.get(
           `${API_BASE_URL}${API_ENDPOINTS.CHECK_FOLLOWING}`,
-          { params: { followerId: currentUser.user_id, followingId: userId } }
+          { params: { followerId: currentUser.userId, followingId: userId } }
         );
         setIsFollowing(followCheckResponse.data.isFollowing);
         
         // Check if users can chat (mutual follow)
         const canChatResponse = await axios.get(
           `${API_BASE_URL}${API_ENDPOINTS.CAN_CHAT}`,
-          { params: { user1Id: currentUser.user_id, user2Id: userId } }
+          { params: { user1Id: currentUser.userId, user2Id: userId } }
         );
         setCanChat(canChatResponse.data.canChat);
       }
@@ -119,7 +119,7 @@ function Profile() {
     
     try {
       const response = await axios.get(
-        `${API_BASE_URL}${API_ENDPOINTS.GET_OR_CREATE_CHAT}/${profileUser.user_id}?userId=${currentUser.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.GET_OR_CREATE_CHAT}/${profileUser.userId}?userId=${currentUser.userId}`
       );
       navigate(`/chat/${response.data.id}`);
     } catch (error) {
@@ -172,11 +172,11 @@ function Profile() {
             <p className="username">@{profileUser.username}</p>
 
             
-            {currentUser.user_id !== profileUser.user_id && (
+            {currentUser.userId !== profileUser.userId && (
               <div className="profile-actions">
                 <FollowButton
-                  targetUserId={profileUser.user_id}
-                  currentUserId={currentUser.user_id}
+                  targetUserId={profileUser.userId}
+                  currentUserId={currentUser.userId}
                   initialIsFollowing={isFollowing}
                   onFollowChange={handleFollowChange}
                 />
@@ -195,7 +195,7 @@ function Profile() {
             )}
             
             <FollowStats
-              userId={profileUser.user_id}
+              userId={profileUser.userId}
               followerCount={followerCount}
               followingCount={followingCount}
               onFollowersClick={() => setShowFollowersList(true)}
@@ -236,28 +236,28 @@ function Profile() {
         {/* Enhanced Profile Sections */}
         <div className="enhanced-sections">
           <SkillsSection 
-            userId={profileUser.user_id} 
-            isOwnProfile={currentUser.user_id === profileUser.user_id} 
+            userId={profileUser.userId} 
+            isOwnProfile={currentUser.userId === profileUser.userId} 
           />
           
           <InterestsSection 
-            userId={profileUser.user_id} 
-            isOwnProfile={currentUser.user_id === profileUser.user_id} 
+            userId={profileUser.userId} 
+            isOwnProfile={currentUser.userId === profileUser.userId} 
           />
           
           <GoalsSection 
-            userId={profileUser.user_id} 
-            isOwnProfile={currentUser.user_id === profileUser.user_id} 
+            userId={profileUser.userId} 
+            isOwnProfile={currentUser.userId === profileUser.userId} 
           />
           
           <ProjectsSection 
-            userId={profileUser.user_id} 
-            isOwnProfile={currentUser.user_id === profileUser.user_id} 
+            userId={profileUser.userId} 
+            isOwnProfile={currentUser.userId === profileUser.userId} 
           />
           
           <ExperienceSection 
-            userId={profileUser.user_id} 
-            isOwnProfile={currentUser.user_id === profileUser.user_id} 
+            userId={profileUser.userId} 
+            isOwnProfile={currentUser.userId === profileUser.userId} 
           />
         </div>
         
@@ -281,7 +281,7 @@ function Profile() {
                     <p>{post.content}</p>
                     <small>{new Date(post.created_on).toLocaleDateString()}</small>
                   </div>
-                  {(currentUser.user_id === profileUser.user_id) && (
+                  {(currentUser.userId === profileUser.userId) && (
                     <button 
                       className="delete-post-btn" 
                       onClick={() => handleDeletePost(post.post_id)}
@@ -298,15 +298,15 @@ function Profile() {
       </div>
       
       <FollowersList
-        userId={profileUser?.user_id}
-        currentUserId={currentUser.user_id}
+        userId={profileUser?.userId}
+        currentUserId={currentUser.userId}
         isOpen={showFollowersList}
         onClose={() => setShowFollowersList(false)}
       />
       
       <FollowingList
-        userId={profileUser?.user_id}
-        currentUserId={currentUser.user_id}
+        userId={profileUser?.userId}
+        currentUserId={currentUser.userId}
         isOpen={showFollowingList}
         onClose={() => setShowFollowingList(false)}
       />

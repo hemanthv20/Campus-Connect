@@ -20,7 +20,7 @@ const ChatIcon = () => {
   const fetchUnreadCount = async () => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}${API_ENDPOINTS.GET_UNREAD_COUNT}?userId=${user.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.GET_UNREAD_COUNT}?userId=${user.userId}`
       );
       setUnreadCount(response.data.count);
     } catch (error) {

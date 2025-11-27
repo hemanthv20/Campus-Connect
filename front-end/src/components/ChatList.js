@@ -25,7 +25,7 @@ const ChatList = () => {
     try {
       // Fetch all users that current user follows
       const response = await axios.get(
-        `${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOWING}/${user.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.GET_FOLLOWING}/${user.userId}`
       );
       setFollowingUsers(response.data);
       setLoading(false);
@@ -44,7 +44,7 @@ const ChatList = () => {
   const handleChatClick = async (otherUserId) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}${API_ENDPOINTS.GET_OR_CREATE_CHAT}/${otherUserId}?userId=${user.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.GET_OR_CREATE_CHAT}/${otherUserId}?userId=${user.userId}`
       );
       navigate(`/chat/${response.data.id}`);
     } catch (error) {

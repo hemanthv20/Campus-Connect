@@ -46,7 +46,7 @@ const ChatWindow = () => {
       // Extract other user from first message
       if (response.data.messages.length > 0) {
         const firstMsg = response.data.messages[0];
-        if (firstMsg.senderId !== user.user_id) {
+        if (firstMsg.senderId !== user.userId) {
           setOtherUser({
             firstName: firstMsg.senderName.split(' ')[0],
             lastName: firstMsg.senderName.split(' ')[1] || '',
@@ -64,7 +64,7 @@ const ChatWindow = () => {
   const markAsRead = async () => {
     try {
       await axios.put(
-        `${API_BASE_URL}${API_ENDPOINTS.MARK_MESSAGES_READ}/${chatId}/read?userId=${user.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.MARK_MESSAGES_READ}/${chatId}/read?userId=${user.userId}`
       );
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -80,7 +80,7 @@ const ChatWindow = () => {
       const response = await axios.post(
         `${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}/${chatId}/messages`,
         {
-          senderId: user.user_id,
+          senderId: user.userId,
           content: newMessage.trim()
         }
       );
@@ -108,7 +108,7 @@ const ChatWindow = () => {
     if (!window.confirm('Delete this message?')) return;
     try {
       await axios.delete(
-        `${API_BASE_URL}${API_ENDPOINTS.DELETE_MESSAGE}/${messageId}?userId=${user.user_id}`
+        `${API_BASE_URL}${API_ENDPOINTS.DELETE_MESSAGE}/${messageId}?userId=${user.userId}`
       );
       setMessages(messages.filter(m => m.id !== messageId));
     } catch (error) {
@@ -143,7 +143,7 @@ const ChatWindow = () => {
               <MessageBubble
                 key={message.id}
                 message={message}
-                isSent={message.senderId === user.user_id}
+                isSent={message.senderId === user.userId}
                 onDelete={deleteMessage}
               />
             ))
