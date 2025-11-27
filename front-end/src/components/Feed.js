@@ -9,35 +9,25 @@ import LoadingSpinner from './common/LoadingSpinner';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 import { getCurrentUser, clearUserSession } from '../utils/userUtils';
 
-
 function Feed() {
-  // Get logged in user information
-  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  // ALL HOOKS MUST BE DECLARED AT THE TOP - NO CONDITIONAL LOGIC BEFORE HOOKS
   const navigate = useNavigate();
-  
-  // Get normalized user object
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
   const normalizedUser = getCurrentUser();
   
-  // ALL HOOKS MUST BE DECLARED FIRST - BEFORE ANY CONDITIONAL LOGIC
-  // Loading Feed
+  // State hooks
   const [feed, setFeed] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
-
-  // Handling of Video and Image Upload
   const [imageUpload, setImageUpload] = useState([]);
   const [videoUpload, setVideoUpload] = useState([]);
   const [mediaPreview, setMediaPreview] = useState([]);
-
-  // Creation of Post
   const [post, setPost] = useState({
     content: '',
     image: null,
     video: null,
     user: normalizedUser
   });
-
-  // Update Function
   const [updatedPost, setUpdatedPost] = useState({
     post_id: '',
     content: '',
@@ -45,10 +35,9 @@ function Feed() {
     video: '',
     user: normalizedUser
   });
-
   const [editingPostId, setEditingPostId] = useState(null);
 
-  // Define functions with useCallback to avoid dependency issues
+  // Callback functions
   const loadFollowingList = useCallback(async () => {
     if (!normalizedUser?.userId) return;
     try {
@@ -66,8 +55,6 @@ function Feed() {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.GET_FEED}`);
       const sortedFeed = response.data.sort((a, b) => b.post_id - a.post_id);
       setFeed(sortedFeed);
-      
-      // Load following list to show indicators
       loadFollowingList();
     } catch (error) {
       setFeed([]);
@@ -76,7 +63,7 @@ function Feed() {
     }
   }, [loadFollowingList]);
 
-  // useEffect hook - must be called after function definitions but before render
+  // useEffect hook
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/');
@@ -87,22 +74,21 @@ function Feed() {
       loadFeed();
     }
   }, [isLoggedIn, navigate, normalizedUser, loadFeed]);
-  
-  // Add safety check for user object AFTER all hooks are declared
+
+  // Early return AFTER all hooks are declared
   if (!normalizedUser) {
     console.error('User object is invalid or missing');
     clearUserSession();
     navigate('/');
     return null;
   }
-  
 
-
+  // Regular functions (not hooks)
   const handleImageUpload = (e) => {
     const files = e.target.files;
     const fileArray = Array.from(files);
     setImageUpload(fileArray);
-    setVideoUpload([]); // Clear video uploads
+    setVideoUpload([]);
     previewFiles(fileArray);
   };
 
@@ -110,7 +96,7 @@ function Feed() {
     const files = e.target.files;
     const fileArray = Array.from(files);
     setVideoUpload(fileArray);
-    setImageUpload([]); // Clear image uploads
+    setImageUpload([]);
     previewFiles(fileArray);
   };
 
@@ -174,7 +160,7 @@ function Feed() {
 
   const handlePostChange = (e) => {
     setPost({ ...post, [e.target.name]: e.target.value });
-  }
+  };
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
@@ -187,7 +173,6 @@ function Feed() {
     }
   };
 
-  // FIXED: Simplified post creation
   const handlePostCreation = (mediaURL, mediaType) => {
     let newPost = { ...post };
     
@@ -216,17 +201,17 @@ function Feed() {
         } else {
           alert('Failed to create post. Please try again.');
         }
-      })
-  }
+      });
+  };
   
-  const selectPostForEdit = (post) => {
-    setEditingPostId(post.post_id);
+  const selectPostForEdit = (postToEdit) => {
+    setEditingPostId(postToEdit.post_id);
     setUpdatedPost({
-      post_id: post.post_id,
-      content: post.content,
-      image: post.image,
-      video: post.video,
-      user: post.user
+      post_id: postToEdit.post_id,
+      content: postToEdit.content,
+      image: postToEdit.image,
+      video: postToEdit.video,
+      user: postToEdit.user
     });
   };
   
@@ -242,7 +227,7 @@ function Feed() {
   };
 
   const handleUpdateChange = (e) => {
-    setUpdatedPost({ ...updatedPost, [e.target.name]: e.target.value })
+    setUpdatedPost({ ...updatedPost, [e.target.name]: e.target.value });
   };
 
   const handleUpdateSubmit = (e) => {
@@ -264,23 +249,20 @@ function Feed() {
       });
   };
 
-  // Post Delete Function
   const handleDeletePostClick = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
       return;
     }
     
     try {
-        // Use regular delete endpoint
-        await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`);
-        loadFeed();
+      await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`);
+      loadFeed();
     } catch (error) {
       console.error('Delete error:', error);
       alert(error.message || 'Failed to delete post. Please try again.');
     }
-  }
+  };
 
-  // Detect URL Links in Content
   const detectLinks = (content) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return content.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
@@ -347,12 +329,12 @@ function Feed() {
         {feed.length === 0 ? (
           <p>No posts made yet! Begin by creating one now.</p>
         ) : (
-          feed.map((post) => (
-            <div className='post-card' key={post.post_id}>
+          feed.map((feedPost) => (
+            <div className='post-card' key={feedPost.post_id}>
               <div className='post-user'>
                 <div className='user-dp'>
-                  {post.user.profile_picture ? (
-                    <img src={post.user.profile_picture} id='post-profile-picture' alt={`${post.user.username}'s profile`} />
+                  {feedPost.user.profile_picture ? (
+                    <img src={feedPost.user.profile_picture} id='post-profile-picture' alt={`${feedPost.user.username}'s profile`} />
                   ) : (
                     <img src={require('../assets/placeholder.png')} id='post-profile-picture' alt="Default profile" />
                   )}
@@ -360,53 +342,48 @@ function Feed() {
                 <div className='user-content'>
                   <div className='user-details'>
                     <div className='user-name-row'>
-                      <b>{post.user.first_name} {post.user.last_name}</b>
-                      {followingUsers.has(post.user.userId) && (
+                      <b>{feedPost.user.first_name} {feedPost.user.last_name}</b>
+                      {followingUsers.has(feedPost.user.userId) && (
                         <span className="following-badge">Following</span>
                       )}
                     </div>
-                    <Link to={`/profile/${post.user.username}`}>
-                      <span>@{post.user.username}</span>
+                    <Link to={`/profile/${feedPost.user.username}`}>
+                      <span>@{feedPost.user.username}</span>
                     </Link>
-                    {/* ADDED: Display college information */}
-                    {(post.user.college || post.user.semester || post.user.batch) && (
+                    {(feedPost.user.college || feedPost.user.semester || feedPost.user.batch) && (
                       <div className='college-info'>
-                        {post.user.college && <span>{post.user.college}</span>}
-                        {post.user.semester && <span> - {post.user.semester}</span>}
-                        {post.user.batch && <span> ({post.user.batch})</span>}
+                        {feedPost.user.college && <span>{feedPost.user.college}</span>}
+                        {feedPost.user.semester && <span> - {feedPost.user.semester}</span>}
+                        {feedPost.user.batch && <span> ({feedPost.user.batch})</span>}
                       </div>
                     )}
                   </div>
                   <div className='post-content'>
-                    {post.image && (
-                      <img src={post.image} width={300} alt="Post image" />
+                    {feedPost.image && (
+                      <img src={feedPost.image} width={300} alt="Post content" />
                     )}
-                    {post.video && (
-                      <video src={post.video} width={300} controls />
+                    {feedPost.video && (
+                      <video src={feedPost.video} width={300} controls />
                     )}
-                    <p dangerouslySetInnerHTML={{ __html: detectLinks(post.content) }}></p>
-                    <small>Posted on {new Date(post.created_on).toLocaleDateString()}</small>
+                    <p dangerouslySetInnerHTML={{ __html: detectLinks(feedPost.content) }}></p>
+                    <small>Posted on {new Date(feedPost.created_on).toLocaleDateString()}</small>
                   </div>
                 </div>
               </div>
-              {/* Edit/Delete buttons for post owner */}
-              {editingPostId !== post.post_id && (
+              {editingPostId !== feedPost.post_id && (
                 <div className="post-actions">
-
-                  
-                  {/* Post owner can edit and delete their own posts */}
-                  {normalizedUser.userId === post.user.userId && (
+                  {normalizedUser.userId === feedPost.user.userId && (
                     <>
                       <button 
                         className="action-btn delete-btn" 
-                        onClick={() => handleDeletePostClick(post.post_id)}
+                        onClick={() => handleDeletePostClick(feedPost.post_id)}
                         title="Delete post"
                       >
                         <i className="fi fi-rr-trash"></i>
                       </button>
                       <button 
                         className="action-btn edit-btn" 
-                        onClick={() => selectPostForEdit(post)}
+                        onClick={() => selectPostForEdit(feedPost)}
                         title="Edit post"
                       >
                         <i className="fi fi-rr-edit"></i>
@@ -415,8 +392,6 @@ function Feed() {
                   )}
                 </div>
               )}
-              
-
             </div>
           ))
         )}
@@ -457,7 +432,7 @@ function Feed() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Feed
+export default Feed;
