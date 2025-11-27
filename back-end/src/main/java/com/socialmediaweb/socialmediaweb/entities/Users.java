@@ -1,6 +1,6 @@
 package com.socialmediaweb.socialmediaweb.entities;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -39,8 +39,7 @@ public class Users {
     @Column(name = "batch", length = 50)
     private String batch;
     
-    @Column(name = "admin")
-    private Boolean admin = false;
+
     
     @Column(name = "created_on")
     private LocalDateTime createdAt;
@@ -56,7 +55,7 @@ public class Users {
         this.username = username;
         this.passwordHash = passwordHash;
         this.email = email;
-        this.admin = false;
+
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -142,13 +141,7 @@ public class Users {
         this.batch = batch;
     }
     
-    public Boolean getAdmin() {
-        return admin;
-    }
-    
-    public void setAdmin(Boolean admin) {
-        this.admin = admin;
-    }
+
     
     public LocalDateTime getCreatedAt() {
         return createdAt;

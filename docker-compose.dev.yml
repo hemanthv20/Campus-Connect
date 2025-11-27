@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: campusconnect-db-dev
+    environment:
+      POSTGRES_DB: campusconnect_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./complete_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+      - ./insert_skills_complete.sql:/docker-entrypoint-initdb.d/02-skills.sql
+    networks:
+      - campusconnect-dev-network
+
+  # Backend Service (Development)
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile.dev
+    container_name: campusconnect-backend-dev
+    environment:
+      - DATA_SOURCE_URL=jdbc:postgresql://database:5432/campusconnect_dev
+      - DATA_SOURCE_USER=postgres
+      - DATA_SOURCE_PASSWORD=postgres123
+      - FRONTEND_URL=http://localhost:3000
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - JPA_DDL_AUTO=update
+      - JPA_SHOW_SQL=true
+      - LOG_LEVEL_ROOT=DEBUG
+    ports:
+      - "8081:8080"
+      - "5005:5005" # Debug port
+    volumes:
+      - ./back-end/src:/app/src
+      - ./back-end/pom.xml:/app/pom.xml
+    depends_on:
+      - database
+    networks:
+      - campusconnect-dev-network
+
+  # Frontend Service (Development)
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile.dev
+    container_name: campusconnect-frontend-dev
+    environment:
+      - REACT_APP_API_URL=http://localhost:8081
+      - REACT_APP_APP_NAME=CampusConnect Dev
+      - REACT_APP_VERSION=1.0.0-dev
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./front-end/src:/app/src
+      - ./front-end/public:/app/public
+      - ./front-end/package.json:/app/package.json
+    depends_on:
+      - backend
+    networks:
+      - campusconnect-dev-network
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  campusconnect-dev-network:
+    driver: bridge

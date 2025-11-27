@@ -12,7 +12,7 @@ import InterestsSection from './profile/InterestsSection';
 import GoalsSection from './profile/GoalsSection';
 import ProjectsSection from './profile/ProjectsSection';
 import ExperienceSection from './profile/ExperienceSection';
-import { useAdmin } from '../context/AdminContext';
+
 import './css/Profile.css';
 
 function Profile() {
@@ -21,8 +21,7 @@ function Profile() {
   const currentUser = JSON.parse(localStorage.getItem('user'));
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   
-  // Admin context
-  const { isAdmin, deleteUser, setCurrentUserId } = useAdmin();
+
   
   const [profileUser, setProfileUser] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
@@ -41,13 +40,10 @@ function Profile() {
       return;
     }
     
-    // Set current user ID for admin context
-    if (currentUser && currentUser.user_id) {
-      setCurrentUserId(currentUser.user_id);
-    }
+
     
     loadProfile();
-  }, [username, isLoggedIn, navigate, currentUser, setCurrentUserId]);
+  }, [username, isLoggedIn, navigate, currentUser]);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -131,32 +127,7 @@ function Profile() {
     }
   };
 
-  const handleAdminDeleteUser = async () => {
-    if (!isAdmin) {
-      alert('Admin privileges required');
-      return;
-    }
 
-    if (profileUser.admin) {
-      alert('Cannot delete admin users');
-      return;
-    }
-
-    const confirmMessage = `Are you sure you want to delete user "${profileUser.username}"? This will permanently delete their account, all posts, and associated data. This action cannot be undone.`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      await deleteUser(profileUser.user_id);
-      alert(`User "${profileUser.username}" has been deleted successfully`);
-      navigate('/feed'); // Redirect to feed after deletion
-    } catch (error) {
-      console.error('Admin delete user error:', error);
-      alert(error.message || 'Failed to delete user. Please try again.');
-    }
-  };
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
@@ -199,9 +170,7 @@ function Profile() {
           <div className="profile-details">
             <h1>{profileUser.first_name} {profileUser.last_name}</h1>
             <p className="username">@{profileUser.username}</p>
-            {profileUser.admin && (
-              <span className="admin-badge">Admin</span>
-            )}
+
             
             {currentUser.user_id !== profileUser.user_id && (
               <div className="profile-actions">
@@ -221,18 +190,7 @@ function Profile() {
                   Message
                 </button>
                 
-                {/* Admin Delete User Button */}
-                {isAdmin && !profileUser.admin && (
-                  <button
-                    className="admin-delete-user-button"
-                    onClick={handleAdminDeleteUser}
-                    title="Delete user (Admin only)"
-                  >
-                    <i className="fi fi-rr-shield"></i>
-                    <i className="fi fi-rr-user-delete"></i>
-                    Delete User
-                  </button>
-                )}
+
               </div>
             )}
             
@@ -323,7 +281,7 @@ function Profile() {
                     <p>{post.content}</p>
                     <small>{new Date(post.created_on).toLocaleDateString()}</small>
                   </div>
-                  {(currentUser.admin || currentUser.user_id === profileUser.user_id) && (
+                  {(currentUser.user_id === profileUser.user_id) && (
                     <button 
                       className="delete-post-btn" 
                       onClick={() => handleDeletePost(post.post_id)}

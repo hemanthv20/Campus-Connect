@@ -7,7 +7,7 @@ import { v4 } from 'uuid';
 import './css/Feed.css';
 import LoadingSpinner from './common/LoadingSpinner';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
-import { useAdmin } from '../context/AdminContext';
+
 
 function Feed() {
   // Get logged in user information
@@ -16,8 +16,7 @@ function Feed() {
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   const navigate = useNavigate();
   
-  // Admin context
-  const { isAdmin, deletePost: adminDeletePost, setCurrentUserId } = useAdmin();
+
 
   // Loading Feed
   const [feed, setFeed] = useState([]);
@@ -241,25 +240,15 @@ function Feed() {
   };
 
   // Post Delete Function
-  const handleDeletePostClick = async (postId, isAdminDelete = false) => {
-    const confirmMessage = isAdminDelete 
-      ? 'Are you sure you want to delete this post as an admin? This action cannot be undone.'
-      : 'Are you sure you want to delete this post?';
-      
-    if (!window.confirm(confirmMessage)) {
+  const handleDeletePostClick = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
       return;
     }
     
     try {
-      if (isAdminDelete && isAdmin) {
-        // Use admin delete endpoint
-        await adminDeletePost(postId);
-        alert('Post deleted successfully by admin');
-      } else {
         // Use regular delete endpoint
         await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.DELETE_POST}/${postId}`);
-      }
-      loadFeed();
+        loadFeed();
     } catch (error) {
       console.error('Delete error:', error);
       alert(error.message || 'Failed to delete post. Please try again.');
@@ -278,13 +267,10 @@ function Feed() {
       return;
     }
     
-    // Set current user ID for admin context
-    if (user && user.user_id) {
-      setCurrentUserId(user.user_id);
-    }
+
     
     loadFeed();
-  }, [isLoggedIn, navigate, user, setCurrentUserId]);
+  }, [isLoggedIn, navigate, user]);
 
   if (loadingFeed) {
     return <LoadingSpinner fullScreen />;
@@ -389,27 +375,17 @@ function Feed() {
                   </div>
                 </div>
               </div>
-              {/* Edit/Delete buttons for admin or post owner */}
+              {/* Edit/Delete buttons for post owner */}
               {editingPostId !== post.post_id && (
                 <div className="post-actions">
-                  {/* Admin can delete any post */}
-                  {isAdmin && (
-                    <button 
-                      className="action-btn admin-delete-btn" 
-                      onClick={() => handleDeletePostClick(post.post_id, true)}
-                      title="Delete post (Admin)"
-                    >
-                      <i className="fi fi-rr-shield"></i>
-                      <i className="fi fi-rr-trash"></i>
-                    </button>
-                  )}
+
                   
                   {/* Post owner can edit and delete their own posts */}
                   {user.user_id === post.user.user_id && (
                     <>
                       <button 
                         className="action-btn delete-btn" 
-                        onClick={() => handleDeletePostClick(post.post_id, false)}
+                        onClick={() => handleDeletePostClick(post.post_id)}
                         title="Delete post"
                       >
                         <i className="fi fi-rr-trash"></i>

@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: campusconnect-db
+    environment:
+      POSTGRES_DB: campusconnect
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./complete_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+      - ./insert_skills_complete.sql:/docker-entrypoint-initdb.d/02-skills.sql
+    networks:
+      - campusconnect-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: campusconnect-backend
+    environment:
+      - DATA_SOURCE_URL=jdbc:postgresql://database:5432/campusconnect
+      - DATA_SOURCE_USER=postgres
+      - DATA_SOURCE_PASSWORD=postgres123
+      - FRONTEND_URL=http://localhost:3000
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
+      - JPA_DDL_AUTO=update
+      - JPA_SHOW_SQL=false
+    ports:
+      - "8081:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - campusconnect-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: campusconnect-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8081
+      - REACT_APP_APP_NAME=CampusConnect
+      - REACT_APP_VERSION=1.0.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - campusconnect-network
+
+volumes:
+  postgres_data:
+
+networks:
+  campusconnect-network:
+    driver: bridge

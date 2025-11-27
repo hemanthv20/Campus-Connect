@@ -5,21 +5,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.socialmediaweb.socialmediaweb.entities.Users;
-import com.socialmediaweb.socialmediaweb.repository.UserRepository;
+import com.socialmediaweb.socialmediaweb.repository.UsersRepository;
 
 @Service
 public class AuthenticationService {
 
     @Autowired
-    private UserRepository repository;
+    private UsersRepository repository;
     
     // Password encoder for secure password hashing
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public Users saveUser(Users user) {
         // Hash password before saving
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
+            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         }
         return repository.save(user);
     }
@@ -36,19 +36,19 @@ public class AuthenticationService {
 
     // Get user by ID
     public Users getUsersById(int id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById((long) id).orElse(null);
     }
 
     // Delete
     public String deleteUser(int id) {
-        repository.deleteById(id);
+        repository.deleteById((long) id);
         return "User deleted.";
     }
 
     // Authentication with password hashing
     public Users authenticateUser(String username, String password) {
-        Users user = repository.findByUsername(username);
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+        Users user = repository.findByUsername(username).orElse(null);
+        if (user != null && passwordEncoder.matches(password, user.getPasswordHash())) {
             return user;
         }
         return null;
@@ -56,27 +56,27 @@ public class AuthenticationService {
 
     // Updated updateUser method to include college fields
     public Users updateUser(Users user) {
-        Users existingUser = repository.findById(user.getUser_id()).orElse(null);
+        Users existingUser = repository.findById(user.getUserId()).orElse(null);
 
         if (existingUser != null) {
             existingUser.setUsername(user.getUsername());
-            existingUser.setFirst_name(user.getFirst_name());
-            existingUser.setLast_name(user.getLast_name());
+            existingUser.setFirstName(user.getFirstName());
+            existingUser.setLastName(user.getLastName());
             existingUser.setEmail(user.getEmail());
             
             // Only update password if it's provided and different
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
                 // Check if password is already hashed (starts with $2a$ for BCrypt)
-                if (!user.getPassword().startsWith("$2a$")) {
-                    existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+                if (!user.getPasswordHash().startsWith("$2a$")) {
+                    existingUser.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
                 } else {
-                    existingUser.setPassword(user.getPassword());
+                    existingUser.setPasswordHash(user.getPasswordHash());
                 }
             }
             
-            existingUser.setGender(user.getGender());
-            existingUser.setProfile_picture(user.getProfile_picture());
-            existingUser.setAdmin(user.isAdmin());
+            // Note: Gender field doesn't exist in Users entity, removing this line
+            existingUser.setProfilePicture(user.getProfilePicture());
+
 
             // UPDATE COLLEGE ASSOCIATION FIELDS
             existingUser.setCollege(user.getCollege());
@@ -96,7 +96,7 @@ public class AuthenticationService {
     }
 
     public Users findByUsername(String username) {
-        return repository.findByUsername(username);
+        return repository.findByUsername(username).orElse(null);
     }
 
     public List<String> findUsernamesBySearchTerm(String searchTerm) {
